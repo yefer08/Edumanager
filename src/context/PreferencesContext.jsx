@@ -1,7 +1,5 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { AuthContext } from './AuthContext';
-import { db } from '../config/firebaseConfig';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 export const PreferencesContext = createContext();
 
@@ -15,35 +13,25 @@ export const PreferencesProvider = ({ children }) => {
   });
   const [loading, setLoading] = useState(false);
 
-  // Cargar preferencias del usuario desde Firestore
+  // Por ahora no cargaremos desde Firestore para evitar errores de permisos
   useEffect(() => {
-    const loadPreferences = async () => {
-      if (user) {
-        setLoading(true);
-        try {
-          const docRef = doc(db, 'userPreferences', user.uid);
-          const docSnap = await getDoc(docRef);
-          
-          if (docSnap.exists()) {
-            setPreferences(docSnap.data());
-          }
-        } catch (error) {
-          console.error('Error loading preferences:', error);
-        } finally {
-          setLoading(false);
-        }
+    if (user) {
+      console.log('Usuario logueado, cargando preferencias locales por ahora...');
+      // Aquí podrías cargar desde localStorage o usar valores por defecto
+      const savedPreferences = localStorage.getItem(`preferences_${user.uid}`);
+      if (savedPreferences) {
+        setPreferences(JSON.parse(savedPreferences));
       }
-    };
-
-    loadPreferences();
+    }
   }, [user]);
 
   const updatePreferences = async (newPreferences) => {
     if (user) {
       try {
-        const docRef = doc(db, 'userPreferences', user.uid);
-        await setDoc(docRef, newPreferences, { merge: true });
+        // Guardar en localStorage por ahora
+        localStorage.setItem(`preferences_${user.uid}`, JSON.stringify(newPreferences));
         setPreferences(newPreferences);
+        console.log('Preferencias guardadas localmente');
         return { success: true };
       } catch (error) {
         console.error('Error updating preferences:', error);

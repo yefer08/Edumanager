@@ -1,4 +1,5 @@
 import React from 'react';
+import Header from '../components/Header';
 import BookCarousel from '../components/BookCarousel';
 import useFetchLibros from '../hooks/useFetchLibros';
 
@@ -10,13 +11,11 @@ const HomePage = () => {
 
   return (
     <div className="home-page">
-      <header className="hero-section">
-        <h1>Bienvenido a BiblioEdu</h1>
-        <p>Descubre tu próxima lectura favorita</p>
-      </header>
+      <Header />
       
-      <main>
-        <section className="featured-books">
+      <main className="main-content-home">
+        <section className="recommendations-section">
+          <h2 className="section-title">Libros recomendados según tus gustos</h2>
           <BookCarousel books={libros?.slice(0, 6)} />
         </section>
         

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Header from '../components/Header';
 import BookCard from '../components/BookCard';
 import useFetchLibros from '../hooks/useFetchLibros';
 
@@ -29,49 +30,64 @@ const BibliotecaPage = () => {
 
   const genres = [...new Set(libros?.map(book => book.genero) || [])];
 
-  if (loading) return <div className="loading">Cargando biblioteca...</div>;
-  if (error) return <div className="error">Error: {error}</div>;
+  if (loading) return (
+    <div className="biblioteca-page">
+      <Header />
+      <div className="loading">Cargando biblioteca...</div>
+    </div>
+  );
+  
+  if (error) return (
+    <div className="biblioteca-page">
+      <Header />
+      <div className="error">Error: {error}</div>
+    </div>
+  );
 
   return (
     <div className="biblioteca-page">
-      <header className="page-header">
-        <h1>Biblioteca Digital</h1>
-        <p>Explora nuestra colección completa</p>
-      </header>
+      <Header />
       
-      <div className="filters-section">
-        <div className="search-box">
-          <input
-            type="text"
-            placeholder="Buscar por título o autor..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input"
-          />
+      <main className="main-content">
+        <header className="page-header">
+          <h1>Biblioteca Digital</h1>
+          <p>Explora nuestra colección completa</p>
+        </header>
+        
+        <div className="filters-section">
+          <div className="search-box">
+            <input
+              type="text"
+              placeholder="Buscar por título o autor..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="search-input"
+            />
+          </div>
+          
+          <div className="genre-filter">
+            <select
+              value={selectedGenre}
+              onChange={(e) => setSelectedGenre(e.target.value)}
+              className="genre-select"
+            >
+              <option value="">Todos los géneros</option>
+              {genres.map(genre => (
+                <option key={genre} value={genre}>{genre}</option>
+              ))}
+            </select>
+          </div>
         </div>
         
-        <div className="genre-filter">
-          <select
-            value={selectedGenre}
-            onChange={(e) => setSelectedGenre(e.target.value)}
-            className="genre-select"
-          >
-            <option value="">Todos los géneros</option>
-            {genres.map(genre => (
-              <option key={genre} value={genre}>{genre}</option>
-            ))}
-          </select>
+        <div className="books-grid">
+          {filteredBooks.length > 0 ? (
+            filteredBooks.map(book => (
+              <BookCard key={book.id} book={book} />
+            ))
+          ) : (
+            <p className="no-results">No se encontraron libros con los criterios seleccionados.</p>
+          )}
         </div>
-      </div>
-      
-      <main className="books-grid">
-        {filteredBooks.length > 0 ? (
-          filteredBooks.map(book => (
-            <BookCard key={book.id} book={book} />
-          ))
-        ) : (
-          <p className="no-results">No se encontraron libros con los criterios seleccionados.</p>
-        )}
       </main>
     </div>
   );

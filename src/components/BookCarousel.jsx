@@ -1,19 +1,74 @@
-import React from 'react';
+import React, { useState } from 'react';
 import BookCard from './BookCard';
 
 const BookCarousel = ({ books }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const booksPerPage = 5;
+
+  if (!books || books.length === 0) {
+    return (
+      <div className="book-carousel">
+        <p className="no-books">No hay libros disponibles</p>
+      </div>
+    );
+  }
+
+  const totalPages = Math.ceil(books.length / booksPerPage);
+  const currentBooks = books.slice(currentIndex, currentIndex + booksPerPage);
+
+  const goToNext = () => {
+    if (currentIndex + booksPerPage < books.length) {
+      setCurrentIndex(currentIndex + booksPerPage);
+    }
+  };
+
+  const goToPrev = () => {
+    if (currentIndex - booksPerPage >= 0) {
+      setCurrentIndex(currentIndex - booksPerPage);
+    }
+  };
+
+  const goToPage = (pageIndex) => {
+    setCurrentIndex(pageIndex * booksPerPage);
+  };
+
   return (
     <div className="book-carousel">
-      <h3>Libros Recomendados</h3>
-      <div className="carousel-container">
-        {books && books.length > 0 ? (
-          books.map((book) => (
+      <div className="carousel-wrapper">
+        {currentIndex > 0 && (
+          <button className="carousel-arrows arrow-left" onClick={goToPrev}>
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+        )}
+        
+        <div className="carousel-container">
+          {currentBooks.map((book) => (
             <BookCard key={book.id} book={book} />
-          ))
-        ) : (
-          <p>No hay libros disponibles</p>
+          ))}
+        </div>
+        
+        {currentIndex + booksPerPage < books.length && (
+          <button className="carousel-arrows arrow-right" onClick={goToNext}>
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
         )}
       </div>
+      
+      {totalPages > 1 && (
+        <div className="carousel-navigation">
+          {Array.from({ length: totalPages }, (_, index) => (
+            <button
+              key={index}
+              className={`nav-dot ${Math.floor(currentIndex / booksPerPage) === index ? 'active' : ''}`}
+              onClick={() => goToPage(index)}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };
