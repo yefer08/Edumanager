@@ -1,4 +1,5 @@
 import React from 'react';
+import Navigation from '../components/Navigation';
 import Header from '../components/Header';
 import BookCarousel from '../components/BookCarousel';
 import useFetchLibros from '../hooks/useFetchLibros';
@@ -11,6 +12,7 @@ const HomePage = () => {
 
   return (
     <div className="home-page">
+      <Navigation />
       <Header />
       
       <main className="main-content-home">

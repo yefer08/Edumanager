@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Navigation from '../components/Navigation';
 import Header from '../components/Header';
 import BookCard from '../components/BookCard';
 import useFetchLibros from '../hooks/useFetchLibros';
@@ -32,6 +33,7 @@ const BibliotecaPage = () => {
 
   if (loading) return (
     <div className="biblioteca-page">
+      <Navigation />
       <Header />
       <div className="loading">Cargando biblioteca...</div>
     </div>
@@ -39,6 +41,7 @@ const BibliotecaPage = () => {
   
   if (error) return (
     <div className="biblioteca-page">
+      <Navigation />
       <Header />
       <div className="error">Error: {error}</div>
     </div>
@@ -46,6 +49,7 @@ const BibliotecaPage = () => {
 
   return (
     <div className="biblioteca-page">
+      <Navigation />
       <Header />
       
       <main className="main-content">

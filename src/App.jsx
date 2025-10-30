@@ -7,6 +7,7 @@ import BibliotecaPage from './pages/BibliotecaPage';
 import PerfilPage from './pages/PerfilPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import TareasPage from './pages/TareasPage';
 import './App.css';
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
               <Route path="/" element={<HomePage />} />
               <Route path="/biblioteca" element={<BibliotecaPage />} />
               <Route path="/perfil" element={<PerfilPage />} />
+              <Route path="/tareas" element={<TareasPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path="*" element={<Navigate to="/" />} />

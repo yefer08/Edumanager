@@ -1,6 +1,7 @@
 import React, { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { PreferencesContext } from '../context/PreferencesContext';
+import Navigation from '../components/Navigation';
 import Header from '../components/Header';
 import PreferencesForm from '../components/PreferencesForm';
 
@@ -20,6 +21,7 @@ const PerfilPage = () => {
   if (!user) {
     return (
       <div className="perfil-page">
+        <Navigation />
         <Header />
         <div className="main-content">
           <div className="no-user">
@@ -33,6 +35,7 @@ const PerfilPage = () => {
 
   return (
     <div className="perfil-page">
+      <Navigation />
       <Header />
       
       <main className="main-content">
