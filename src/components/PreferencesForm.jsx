@@ -3,9 +3,7 @@ import React, { useState } from 'react';
 const PreferencesForm = ({ onSave }) => {
   const [preferences, setPreferences] = useState({
     generosFavoritos: [],
-    autoresFavoritos: [],
-    notificaciones: true,
-    privacidad: 'publico'
+    autoresFavoritos: []
   });
 
   const generos = [
@@ -45,37 +43,6 @@ const PreferencesForm = ({ onSave }) => {
             </label>
           ))}
         </div>
-      </div>
-
-      <div className="form-section">
-        <label htmlFor="notificaciones">
-          <input
-            type="checkbox"
-            id="notificaciones"
-            checked={preferences.notificaciones}
-            onChange={(e) => setPreferences(prev => ({
-              ...prev,
-              notificaciones: e.target.checked
-            }))}
-          />
-          Recibir notificaciones
-        </label>
-      </div>
-
-      <div className="form-section">
-        <label htmlFor="privacidad">Privacidad del perfil:</label>
-        <select
-          id="privacidad"
-          value={preferences.privacidad}
-          onChange={(e) => setPreferences(prev => ({
-            ...prev,
-            privacidad: e.target.value
-          }))}
-        >
-          <option value="publico">Público</option>
-          <option value="privado">Privado</option>
-          <option value="amigos">Solo amigos</option>
-        </select>
       </div>
 
       <button type="submit" className="btn-primary">

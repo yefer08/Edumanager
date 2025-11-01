@@ -1,6 +1,7 @@
 import React, { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { PreferencesContext } from '../context/PreferencesContext';
+import { FavoritesContext } from '../context/FavoritesContext';
 import Navigation from '../components/Navigation';
 import Header from '../components/Header';
 import PreferencesForm from '../components/PreferencesForm';
@@ -8,6 +9,7 @@ import PreferencesForm from '../components/PreferencesForm';
 const PerfilPage = () => {
   const { user, logout } = useContext(AuthContext);
   const { preferences, updatePreferences } = useContext(PreferencesContext);
+  const { favorites } = useContext(FavoritesContext);
 
   const handlePreferencesSave = (newPreferences) => {
     updatePreferences(newPreferences);
@@ -73,7 +75,7 @@ const PerfilPage = () => {
               <span className="stat-label">Libros Leídos</span>
             </div>
             <div className="stat-item">
-              <span className="stat-number">0</span>
+              <span className="stat-number">{favorites.length}</span>
               <span className="stat-label">Libros Favoritos</span>
             </div>
             <div className="stat-item">

@@ -7,9 +7,7 @@ export const PreferencesProvider = ({ children }) => {
   const { user } = useContext(AuthContext);
   const [preferences, setPreferences] = useState({
     generosFavoritos: [],
-    autoresFavoritos: [],
-    notificaciones: true,
-    privacidad: 'publico'
+    autoresFavoritos: []
   });
   const [loading, setLoading] = useState(false);
 

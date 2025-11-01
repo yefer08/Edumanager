@@ -1,8 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { auth } from "../config/firebaseConfig";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { PreferencesContext } from "../context/PreferencesContext";
 
 export default function RegisterForm() {
+  const { updatePreferences } = useContext(PreferencesContext);
+  
   // Estados básicos para Firebase Auth
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -17,6 +20,23 @@ export default function RegisterForm() {
     gender: '',
     grade: ''
   });
+  
+  // Estado para género favorito
+  const [selectedGenre, setSelectedGenre] = useState('');
+  
+  // Lista de géneros disponibles
+  const availableGenres = [
+    'Ficción',
+    'No Ficción',
+    'Misterio',
+    'Romance',
+    'Ciencia Ficción',
+    'Fantasía',
+    'Biografía',
+    'Historia',
+    'Autoayuda',
+    'Poesía'
+  ];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -24,6 +44,10 @@ export default function RegisterForm() {
       ...prev,
       [name]: value
     }));
+  };
+
+  const handleGenreChange = (e) => {
+    setSelectedGenre(e.target.value);
   };
 
   const handleSignUp = () => {
@@ -41,22 +65,44 @@ export default function RegisterForm() {
       return;
     }
 
+    if (!selectedGenre) {
+      alert("Por favor, selecciona un género de interés");
+      return;
+    }
+
     createUserWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-        console.log("Usuario registrado:", userCredential.user);
-        // Aquí podrías guardar los datos adicionales en Firestore
-        console.log("Datos adicionales para guardar:", {
-          firstName: formData.firstName,
-          secondName: formData.secondName,
-          lastName: formData.lastName,
-          secondLastName: formData.secondLastName,
-          birthDate: formData.birthDate,
-          gender: formData.gender,
-          grade: formData.grade,
-          email: email
-        });
-        alert("¡Usuario registrado exitosamente!");
-        window.location.href = '/login';
+      .then(async (userCredential) => {
+        const user = userCredential.user;
+        
+        // Actualizar el perfil del usuario con su nombre
+        const displayName = `${formData.firstName} ${formData.secondName || ''} ${formData.lastName} ${formData.secondLastName || ''}`.trim();
+        
+        try {
+          await updateProfile(user, {
+            displayName: displayName
+          });
+          
+          // Guardar preferencias del usuario
+          await updatePreferences({
+            generoFavorito: selectedGenre,
+            autoresFavoritos: []
+          });
+          
+          console.log("Usuario registrado y preferencias guardadas:", {
+            uid: user.uid,
+            email: user.email,
+            displayName: displayName,
+            additionalData: formData,
+            generoFavorito: selectedGenre
+          });
+          
+          alert("¡Usuario registrado exitosamente!");
+          window.location.href = '/login';
+        } catch (error) {
+          console.error("Error actualizando el perfil:", error);
+          // Continuamos porque el usuario fue creado
+          alert("Usuario creado pero hubo un error actualizando el perfil. Por favor actualiza tu perfil más tarde.");
+        }
       })
       .catch((error) => {
         console.log("Error:", error.message);
@@ -146,25 +192,20 @@ export default function RegisterForm() {
         </div>
 
         <div className="form-section">
-          <label className="form-label">Género interés*</label>
+          <label className="form-label">Género de interés*</label>
           <select
-            name="gender"
-            value={formData.gender}
-            onChange={handleChange}
+            name="genre"
+            value={selectedGenre}
+            onChange={handleGenreChange}
             required
             className="select-dropdown"
           >
-            <option value="">Seleccionar</option>
-            <option value="ficcion">Ficción</option>
-            <option value="no-ficcion">No Ficción</option>
-            <option value="misterio">Misterio</option>
-            <option value="romance">Romance</option>
-            <option value="ciencia-ficcion">Ciencia Ficción</option>
-            <option value="fantasia">Fantasía</option>
-            <option value="biografia">Biografía</option>
-            <option value="historia">Historia</option>
-            <option value="autoayuda">Autoayuda</option>
-            <option value="poesia">Poesía</option>
+            <option value="">Selecciona un género</option>
+            {availableGenres.map(genre => (
+              <option key={genre} value={genre}>
+                {genre}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -189,13 +230,13 @@ export default function RegisterForm() {
           </select>
         </div>
 
-        <input
+        <button
           type="button"
-          title="Registrarse"
           onClick={handleSignUp}
-          value="Registrar"
           className="btn-register"
-        />
+        >
+          Registrarse
+        </button>
 
         <div className="login-link">
           <span>¿Ya tienes cuenta? </span>

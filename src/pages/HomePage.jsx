@@ -18,10 +18,10 @@ const HomePage = () => {
       <main className="main-content-home">
         <section className="recommendations-section">
           <h2 className="section-title">Libros recomendados según tus gustos</h2>
-          <BookCarousel books={libros?.slice(0, 6)} />
+          {<BookCarousel books={libros?.slice(0, 6)} /> }
         </section>
         
-        <section className="quick-stats">
+        { <section className="quick-stats">
           <div className="stat-card">
             <h3>{libros?.length || 0}</h3>
             <p>Libros Disponibles</p>
@@ -34,7 +34,7 @@ const HomePage = () => {
             <h3>50+</h3>
             <p>Géneros</p>
           </div>
-        </section>
+        </section> }
       </main>
     </div>
   );

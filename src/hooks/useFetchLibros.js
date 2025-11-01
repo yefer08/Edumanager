@@ -1,23 +1,25 @@
 import { useState, useEffect } from 'react';
 
+// Cache para almacenar los libros entre renders
+let librosCache = null;
+
 const useFetchLibros = () => {
-  const [libros, setLibros] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [libros, setLibros] = useState(() => librosCache || []);
+  const [loading, setLoading] = useState(!librosCache);
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    // Si ya tenemos los datos en cache, no hacemos nada
+    if (librosCache) {
+      return;
+    }
+
     const fetchLibros = async () => {
       try {
         setLoading(true);
         setError(null);
-        
-        // Por ahora usamos datos mock mientras configuramos Firestore
-        console.log('Cargando libros mock...');
-        
-        // Simulamos un delay de carga
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        const mockLibros = [
+
+      const mockLibros = [
           {
             id: '1',
             titulo: 'Cien años de soledad',
@@ -79,10 +81,12 @@ const useFetchLibros = () => {
             isbn: '978-0-307-47427-5'
           }
         ];
-        
+
+        // Guardamos en cache y estado
+        librosCache = mockLibros;
         setLibros(mockLibros);
         console.log('Libros cargados exitosamente:', mockLibros.length);
-        
+
       } catch (err) {
         console.error('Error loading libros:', err);
         setError(err.message);
@@ -92,10 +96,13 @@ const useFetchLibros = () => {
     };
 
     fetchLibros();
-  }, []);
+  }, []); // Solo se ejecuta una vez al montar el componente si no hay cache
 
   const refetch = () => {
-    fetchLibros();
+    // Limpiar cache y volver a cargar
+    librosCache = null;
+    setLoading(true);
+    setLibros([]);
   };
 
   return { libros, loading, error, refetch };
