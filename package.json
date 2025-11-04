@@ -1,7 +1,8 @@
 {
-  "name": "biblioedu",
+  "name": "bibliomanager",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "Plataforma web de biblioteca virtual inteligente",
   "type": "module",
   "scripts": {
     "dev": "vite",
