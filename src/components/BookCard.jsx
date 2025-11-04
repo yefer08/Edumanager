@@ -1,18 +1,28 @@
-import React from 'react';
+import React, { memo } from 'react';
+import { useImageLoader, BOOK_PLACEHOLDER } from '../hooks/useImageLoader';
 
-const BookCard = ({ book }) => {
+const BookCard = memo(({ book }) => {
+  const { imageSrc, loading, error } = useImageLoader(book?.imagen, BOOK_PLACEHOLDER);
+
   if (!book) return null;
 
   return (
     <div className="book-card">
       <div className="book-image">
         <img 
-          src={book.imagen || '/placeholder-book.jpg'} 
+          src={imageSrc}
           alt={book.titulo}
-          onError={(e) => {
-            e.target.src = '/placeholder-book.jpg';
+          loading="lazy"
+          style={{
+            opacity: loading ? 0.7 : 1,
+            transition: 'opacity 0.3s ease'
           }}
         />
+        {loading && (
+          <div className="image-loader">
+            <div className="spinner"></div>
+          </div>
+        )}
       </div>
       <div className="book-info">
         <h4 className="book-title">{book.titulo}</h4>
@@ -25,6 +35,9 @@ const BookCard = ({ book }) => {
       </div>
     </div>
   );
-};
+});
+
+// Nombre para debugging
+BookCard.displayName = 'BookCard';
 
 export default BookCard;

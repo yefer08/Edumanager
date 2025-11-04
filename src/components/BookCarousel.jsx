@@ -1,9 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import BookCard from './BookCard';
 
 const BookCarousel = ({ books }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const booksPerPage = 5;
+
+  // Memoizar libros actuales para evitar recálculos innecesarios
+  const currentBooks = useMemo(() => {
+    if (!books || books.length === 0) return [];
+    return books.slice(currentIndex, currentIndex + booksPerPage);
+  }, [books, currentIndex, booksPerPage]);
+
+  const totalPages = useMemo(() => {
+    if (!books || books.length === 0) return 0;
+    return Math.ceil(books.length / booksPerPage);
+  }, [books, booksPerPage]);
+
+  // Memoizar funciones de navegación
+  const goToNext = useCallback(() => {
+    if (books && currentIndex + booksPerPage < books.length) {
+      setCurrentIndex(currentIndex + booksPerPage);
+    }
+  }, [books, currentIndex, booksPerPage]);
+
+  const goToPrev = useCallback(() => {
+    if (currentIndex - booksPerPage >= 0) {
+      setCurrentIndex(currentIndex - booksPerPage);
+    }
+  }, [currentIndex, booksPerPage]);
 
   if (!books || books.length === 0) {
     return (
@@ -12,21 +36,6 @@ const BookCarousel = ({ books }) => {
       </div>
     );
   }
-
-  const totalPages = Math.ceil(books.length / booksPerPage);
-  const currentBooks = books.slice(currentIndex, currentIndex + booksPerPage);
-
-  const goToNext = () => {
-    if (currentIndex + booksPerPage < books.length) {
-      setCurrentIndex(currentIndex + booksPerPage);
-    }
-  };
-
-  const goToPrev = () => {
-    if (currentIndex - booksPerPage >= 0) {
-      setCurrentIndex(currentIndex - booksPerPage);
-    }
-  };
 
   const goToPage = (pageIndex) => {
     setCurrentIndex(pageIndex * booksPerPage);
