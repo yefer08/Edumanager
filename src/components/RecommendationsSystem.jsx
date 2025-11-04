@@ -8,139 +8,167 @@ const RecommendationsSystem = () => {
   const { preferences } = useContext(PreferencesContext);
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Datos de ejemplo de libros organizados por género
-  const booksByGenre = {
-    'Ficción': [
-      {
-        id: 'fic1',
-        titulo: 'Cien Años de Soledad',
-        autor: 'Gabriel García Márquez',
-        genero: 'Ficción',
-        imagen: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=300&h=400&fit=crop',
-        disponible: true,
-        descripcion: 'Una obra maestra del realismo mágico.'
-      },
-      {
-        id: 'fic2',
-        titulo: 'El Amor en los Tiempos del Cólera',
-        autor: 'Gabriel García Márquez',
-        genero: 'Ficción',
-        imagen: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=400&fit=crop',
-        disponible: true,
-        descripcion: 'Una hermosa historia de amor que trasciende el tiempo.'
+  // Mapeo de géneros de usuario a categorías de Open Library
+  const genreMapping = {
+    'Ficción': 'fiction',
+    'No Ficción': 'nonfiction',
+    'Misterio': 'mystery',
+    'Romance': 'romance',
+    'Ciencia Ficción': 'science_fiction',
+    'Fantasía': 'fantasy',
+    'Biografía': 'biography',
+    'Historia': 'history',
+    'Autoayuda': 'self_help',
+    'Poesía': 'poetry',
+    'Aventura': 'adventure',
+    'Terror': 'horror',
+    'Drama': 'drama',
+    'Infantil': 'children',
+    'Juvenil': 'young_adult'
+  };
+
+  // Función para obtener libros de Open Library por tema
+  const fetchBooksBySubject = async (subject, limit = 6) => {
+    try {
+      const openLibrarySubject = genreMapping[subject] || subject.toLowerCase().replace(' ', '_');
+      const response = await fetch(
+        `https://openlibrary.org/subjects/${openLibrarySubject}.json?limit=${limit}`
+      );
+      
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
       }
-    ],
-    'Ciencia Ficción': [
-      {
-        id: 'scifi1',
-        titulo: 'Dune',
-        autor: 'Frank Herbert',
-        genero: 'Ciencia Ficción',
-        imagen: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=300&h=400&fit=crop',
-        disponible: true,
-        descripcion: 'Una épica saga de ciencia ficción en el desierto de Arrakis.'
-      },
-      {
-        id: 'scifi2',
-        titulo: 'Fundación',
-        autor: 'Isaac Asimov',
-        genero: 'Ciencia Ficción',
-        imagen: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=400&fit=crop',
-        disponible: false,
-        descripcion: 'La historia del Imperio Galáctico y su caída inevitable.'
+      
+      const data = await response.json();
+      return data.works || [];
+    } catch (error) {
+      console.error(`Error fetching books for ${subject}:`, error);
+      return [];
+    }
+  };
+
+  // Función para formatear datos de Open Library
+  const formatOpenLibraryBook = (work, index) => {
+    const coverKey = work.cover_id || work.cover_edition_key;
+    const coverUrl = coverKey 
+      ? `https://covers.openlibrary.org/b/id/${coverKey}-M.jpg`
+      : `https://via.placeholder.com/200x300/d4a574/ffffff?text=${encodeURIComponent(work.title || 'Sin Título')}`;
+
+    return {
+      id: work.key || `rec-${index}`,
+      titulo: work.title || 'Título no disponible',
+      autor: work.authors && work.authors.length > 0 
+        ? work.authors.map(author => author.name).join(', ')
+        : 'Autor desconocido',
+      genero: work.subject && work.subject.length > 0 
+        ? work.subject[0] 
+        : 'General',
+      imagen: coverUrl,
+      disponible: Math.random() > 0.2, // 80% de probabilidad de estar disponible
+      descripcion: work.first_sentence 
+        ? Array.isArray(work.first_sentence) 
+          ? work.first_sentence.join(' ')
+          : work.first_sentence
+        : 'Una interesante obra disponible en nuestra biblioteca.',
+      fechaPublicacion: work.first_publish_year || 'Fecha desconocida',
+      subjects: work.subject || []
+    };
+  };
+
+  // Función para obtener libros de géneros por defecto
+  const getDefaultRecommendations = async () => {
+    const defaultGenres = ['fiction', 'science_fiction', 'fantasy', 'mystery', 'biography', 'history'];
+    const allBooks = [];
+
+    for (const genre of defaultGenres) {
+      try {
+        const response = await fetch(`https://openlibrary.org/subjects/${genre}.json?limit=2`);
+        if (response.ok) {
+          const data = await response.json();
+          const formattedBooks = (data.works || []).map((work, index) => 
+            formatOpenLibraryBook(work, `${genre}-${index}`)
+          );
+          allBooks.push(...formattedBooks);
+        }
+      } catch (error) {
+        console.error(`Error fetching ${genre} books:`, error);
       }
-    ],
-    'Historia': [
-      {
-        id: 'hist1',
-        titulo: 'Sapiens',
-        autor: 'Yuval Noah Harari',
-        genero: 'Historia',
-        imagen: 'https://images.unsplash.com/photo-1553729459-efe14ef6055d?w=300&h=400&fit=crop',
-        disponible: true,
-        descripcion: 'Una fascinante exploración de la historia de la humanidad.'
-      }
-    ],
-    'Misterio': [
-      {
-        id: 'myst1',
-        titulo: 'El Nombre de la Rosa',
-        autor: 'Umberto Eco',
-        genero: 'Misterio',
-        imagen: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=400&fit=crop',
-        disponible: true,
-        descripcion: 'Un misterio medieval lleno de simbolismo y filosofía.'
-      }
-    ],
-    'Romance': [
-      {
-        id: 'rom1',
-        titulo: 'Orgullo y Prejuicio',
-        autor: 'Jane Austen',
-        genero: 'Romance',
-        imagen: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=300&h=400&fit=crop',
-        disponible: true,
-        descripcion: 'La clásica historia de amor entre Elizabeth y Darcy.'
-      }
-    ],
-    'Fantasía': [
-      {
-        id: 'fant1',
-        titulo: 'El Señor de los Anillos',
-        autor: 'J.R.R. Tolkien',
-        genero: 'Fantasía',
-        imagen: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=300&h=400&fit=crop',
-        disponible: true,
-        descripcion: 'La épica aventura en la Tierra Media.'
-      }
-    ]
+    }
+
+    return allBooks.slice(0, 6); // Limitar a 6 recomendaciones
   };
 
   useEffect(() => {
-    if (user && preferences) {
-      generateRecommendations();
-    }
+    generateRecommendations();
   }, [user, preferences]);
 
-  const generateRecommendations = () => {
+  const generateRecommendations = async () => {
     setLoading(true);
+    setError(null);
     
-    // Obtener géneros favoritos del usuario
-    const userGenres = preferences.generosFavoritos || [];
-    const userFavoriteGenre = preferences.generoFavorito || userGenres[0];
-    
-    let recommendedBooks = [];
+    try {
+      let recommendedBooks = [];
 
-    // Si el usuario tiene géneros favoritos, recomendar basado en esos
-    if (userFavoriteGenre && booksByGenre[userFavoriteGenre]) {
-      recommendedBooks = [...booksByGenre[userFavoriteGenre]];
-    }
-
-    // Agregar libros de géneros similares
-    userGenres.forEach(genre => {
-      if (booksByGenre[genre]) {
-        recommendedBooks = [...recommendedBooks, ...booksByGenre[genre]];
-      }
-    });
-
-    // Si no tiene preferencias, mostrar una selección general
-    if (recommendedBooks.length === 0) {
-      const allGenres = Object.keys(booksByGenre);
-      allGenres.forEach(genre => {
-        if (booksByGenre[genre] && booksByGenre[genre].length > 0) {
-          recommendedBooks.push(booksByGenre[genre][0]); // Tomar el primer libro de cada género
+      if (user && preferences) {
+        // Obtener géneros favoritos del usuario
+        const userGenres = preferences.generosFavoritos || [];
+        const userFavoriteGenre = preferences.generoFavorito || userGenres[0];
+        
+        if (userFavoriteGenre) {
+          // Obtener libros basados en el género favorito
+          const genreBooks = await fetchBooksBySubject(userFavoriteGenre, 4);
+          recommendedBooks = genreBooks.map((work, index) => 
+            formatOpenLibraryBook(work, `fav-${index}`)
+          );
         }
-      });
+
+        // Agregar libros de otros géneros del usuario
+        for (const genre of userGenres.slice(0, 2)) {
+          if (genre !== userFavoriteGenre) {
+            const additionalBooks = await fetchBooksBySubject(genre, 2);
+            const formattedBooks = additionalBooks.map((work, index) => 
+              formatOpenLibraryBook(work, `${genre}-${index}`)
+            );
+            recommendedBooks.push(...formattedBooks);
+          }
+        }
+      }
+
+      // Si no hay suficientes recomendaciones personalizadas, agregar por defecto
+      if (recommendedBooks.length < 6) {
+        const defaultBooks = await getDefaultRecommendations();
+        recommendedBooks.push(...defaultBooks);
+      }
+
+      // Remover duplicados y limitar a 6
+      const uniqueBooks = recommendedBooks
+        .filter((book, index, self) => 
+          index === self.findIndex(b => b.titulo === book.titulo)
+        )
+        .slice(0, 6);
+
+      setRecommendations(uniqueBooks);
+    } catch (error) {
+      console.error('Error generating recommendations:', error);
+      setError('Error al cargar recomendaciones');
+      
+      // Fallback en caso de error
+      setRecommendations([
+        {
+          id: 'fallback-1',
+          titulo: 'Cien Años de Soledad',
+          autor: 'Gabriel García Márquez',
+          genero: 'Ficción',
+          imagen: 'https://via.placeholder.com/200x300/d4a574/ffffff?text=Cien+Años+de+Soledad',
+          disponible: true,
+          descripcion: 'Una obra maestra del realismo mágico latinoamericano.'
+        }
+      ]);
+    } finally {
+      setLoading(false);
     }
-
-    // Remover duplicados y limitar a 6 recomendaciones
-    const uniqueBooks = recommendedBooks.filter((book, index, self) => 
-      index === self.findIndex(b => b.id === book.id)
-    ).slice(0, 6);
-
-    setRecommendations(uniqueBooks);
-    setLoading(false);
   };
 
   if (!user) {
@@ -158,10 +186,31 @@ const RecommendationsSystem = () => {
     return (
       <div className="recommendations-section">
         <div className="recommendations-header">
-          <h2>🎯 Cargando Recomendaciones...</h2>
+          <h2>🎯 Cargando Recomendaciones desde Open Library...</h2>
         </div>
         <div className="loading-spinner-container">
           <div className="spinner"></div>
+          <p style={{ marginTop: '1rem', color: '#7f8c8d' }}>
+            Obteniendo libros reales de la biblioteca mundial
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="recommendations-section">
+        <div className="recommendations-header">
+          <h2>⚠️ Error al Cargar Recomendaciones</h2>
+          <p>{error}</p>
+          <button 
+            onClick={generateRecommendations}
+            className="btn-primary"
+            style={{ marginTop: '1rem', width: 'auto', padding: '0.5rem 1rem' }}
+          >
+            Reintentar
+          </button>
         </div>
       </div>
     );
@@ -174,7 +223,7 @@ const RecommendationsSystem = () => {
       <div className="recommendations-header">
         <h2>🎯 Recomendaciones Para Ti</h2>
         {userFavoriteGenre && (
-          <p>Basado en tu interés en <strong>{userFavoriteGenre}</strong></p>
+          <p>Basado en tu interés en <strong>{userFavoriteGenre}</strong> - Powered by Open Library</p>
         )}
       </div>
       
@@ -192,7 +241,7 @@ const RecommendationsSystem = () => {
       
       <div className="recommendations-footer">
         <p className="ai-note">
-          💡 <strong>Sistema Inteligente:</strong> Nuestras recomendaciones mejoran con tus interacciones
+          💡 <strong>Sistema Inteligente:</strong> Recomendaciones basadas en Open Library con millones de libros reales
         </p>
       </div>
     </div>

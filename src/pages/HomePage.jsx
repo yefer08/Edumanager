@@ -3,13 +3,24 @@ import Navigation from '../components/Navigation';
 import Header from '../components/Header';
 import BookCarousel from '../components/BookCarousel';
 import RecommendationsSystem from '../components/RecommendationsSystem';
-import useFetchLibros from '../hooks/useFetchLibros';
+import useOpenLibrary from '../hooks/useOpenLibrary';
 
 const HomePage = () => {
-  const { libros, loading, error } = useFetchLibros();
+  const { books, loading, error } = useOpenLibrary();
 
-  if (loading) return <div className="loading">Cargando...</div>;
-  if (error) return <div className="error">Error: {error}</div>;
+  if (loading) return (
+    <div className="loading">
+      <div className="spinner"></div>
+      <p>Cargando libros desde Open Library...</p>
+    </div>
+  );
+  
+  if (error) return (
+    <div className="error">
+      <p>Error: {error}</p>
+      <p>Mostrando contenido de respaldo</p>
+    </div>
+  );
 
   return (
     <div className="home-page">
@@ -22,20 +33,20 @@ const HomePage = () => {
         
         <section className="catalog-section">
           <h2 className="section-title">📚 Catálogo General</h2>
-          <p className="section-subtitle">Explora nuestra colección completa de libros</p>
-          <BookCarousel books={libros?.slice(0, 8)} />
+          <p className="section-subtitle">Explora nuestra colección de libros reales desde Open Library</p>
+          <BookCarousel books={books?.slice(0, 8)} />
         </section>
         
         <section className="quick-stats">
           <div className="stat-card">
             <div className="stat-icon">📚</div>
-            <h3>{libros?.length || 0}</h3>
-            <p>Libros Disponibles</p>
+            <h3>{books?.length || 0}</h3>
+            <p>Libros Cargados</p>
           </div>
           <div className="stat-card">
-            <div className="stat-icon">👥</div>
-            <h3>+1000</h3>
-            <p>Usuarios Activos</p>
+            <div className="stat-icon">🌐</div>
+            <h3>Open Library</h3>
+            <p>Fuente de Datos</p>
           </div>
           <div className="stat-card">
             <div className="stat-icon">🎯</div>
@@ -53,8 +64,8 @@ const HomePage = () => {
           <div className="info-container">
             <h2>🧠 BiblioManager - Biblioteca Virtual Inteligente</h2>
             <p>
-              Nuestra plataforma utiliza tecnología avanzada para ofrecerte una experiencia 
-              personalizada de lectura. El sistema de recomendaciones se adapta a tus gustos 
+              Nuestra plataforma utiliza la API de Open Library para ofrecerte acceso a millones 
+              de libros reales. El sistema de recomendaciones se adapta a tus gustos 
               y mejora con cada interacción.
             </p>
             <div className="features-grid">
@@ -64,9 +75,9 @@ const HomePage = () => {
                 <p>Algoritmos inteligentes basados en tus géneros favoritos</p>
               </div>
               <div className="feature-item">
-                <span className="feature-icon">📊</span>
-                <h4>Seguimiento de Lectura</h4>
-                <p>Historial completo de tus préstamos y favoritos</p>
+                <span className="feature-icon">🌐</span>
+                <h4>Open Library Integration</h4>
+                <p>Acceso a millones de libros reales y verificados</p>
               </div>
               <div className="feature-item">
                 <span className="feature-icon">🔍</span>
