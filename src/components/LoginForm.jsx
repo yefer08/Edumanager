@@ -102,7 +102,7 @@ const LoginForm = () => {
       <div className="login-form">
         <div className="form-header">
           <h2>Iniciar sesión</h2>
-          <p className="subtitle">Acceso a BiblioEdu</p>
+          <p className="subtitle">Acceso para estudiantes</p>
         </div>
         
         <form onSubmit={handleLogin} className="auth-form">
@@ -192,7 +192,7 @@ const LoginForm = () => {
         <div className="form-footer">
           <div className="register-link">
             <span>¿No tienes cuenta? </span>
-            <a href="/register">Registrarse aquí</a>
+            <a href="/register">Registrar aquí</a>
           </div>
           
           <div className="forgot-password">
