@@ -25,17 +25,23 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const result = await signInWithEmailAndPassword(auth, email, password);
+      console.log("Usuario logueado:", result.user);
       return { success: true, user: result.user };
     } catch (error) {
+      console.log("Error en login:", error.message);
       return { success: false, error: error.message };
     }
   };
 
+  // Función de registro basada en el código del profesor
   const register = async (email, password) => {
     try {
+      console.log("Email", email);
       const result = await createUserWithEmailAndPassword(auth, email, password);
+      console.log("Usuario registrado:", result.user);
       return { success: true, user: result.user };
     } catch (error) {
+      console.log("Error:", error.message);
       return { success: false, error: error.message };
     }
   };

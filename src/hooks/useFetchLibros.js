@@ -1,6 +1,4 @@
 import { useState, useEffect } from 'react';
-import { db } from '../config/firebaseConfig';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 
 const useFetchLibros = () => {
   const [libros, setLibros] = useState([]);
@@ -13,21 +11,12 @@ const useFetchLibros = () => {
         setLoading(true);
         setError(null);
         
-        // Crear query para obtener libros ordenados por título
-        const q = query(collection(db, 'libros'), orderBy('titulo'));
-        const querySnapshot = await getDocs(q);
+        // Por ahora usamos datos mock mientras configuramos Firestore
+        console.log('Cargando libros mock...');
         
-        const librosData = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
+        // Simulamos un delay de carga
+        await new Promise(resolve => setTimeout(resolve, 1000));
         
-        setLibros(librosData);
-      } catch (err) {
-        console.error('Error fetching libros:', err);
-        setError(err.message);
-        
-        // Datos mock para desarrollo (cuando no hay conexión a Firebase)
         const mockLibros = [
           {
             id: '1',
@@ -92,6 +81,11 @@ const useFetchLibros = () => {
         ];
         
         setLibros(mockLibros);
+        console.log('Libros cargados exitosamente:', mockLibros.length);
+        
+      } catch (err) {
+        console.error('Error loading libros:', err);
+        setError(err.message);
       } finally {
         setLoading(false);
       }

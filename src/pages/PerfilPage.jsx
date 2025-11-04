@@ -1,6 +1,8 @@
 import React, { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { PreferencesContext } from '../context/PreferencesContext';
+import Navigation from '../components/Navigation';
+import Header from '../components/Header';
 import PreferencesForm from '../components/PreferencesForm';
 
 const PerfilPage = () => {
@@ -19,9 +21,13 @@ const PerfilPage = () => {
   if (!user) {
     return (
       <div className="perfil-page">
-        <div className="no-user">
-          <h2>Acceso Requerido</h2>
-          <p>Por favor, inicia sesión para ver tu perfil.</p>
+        <Navigation />
+        <Header />
+        <div className="main-content">
+          <div className="no-user">
+            <h2>Acceso Requerido</h2>
+            <p>Por favor, inicia sesión para ver tu perfil.</p>
+          </div>
         </div>
       </div>
     );
@@ -29,24 +35,28 @@ const PerfilPage = () => {
 
   return (
     <div className="perfil-page">
-      <header className="profile-header">
-        <div className="user-info">
-          <div className="avatar">
-            <img 
-              src={user.photoURL || '/default-avatar.png'} 
-              alt="Avatar del usuario"
-              onError={(e) => {
-                e.target.src = '/default-avatar.png';
-              }}
-            />
-          </div>
-          <div className="user-details">
-            <h1>{user.displayName || user.email}</h1>
-            <p>{user.email}</p>
-            <p>Miembro desde: {user.metadata?.creationTime ? 
-              new Date(user.metadata.creationTime).toLocaleDateString() : 
-              'Fecha no disponible'
-            }</p>
+      <Navigation />
+      <Header />
+      
+      <main className="main-content">
+        <header className="profile-header">
+          <div className="user-info">
+            <div className="avatar">
+              <img 
+                src={user.photoURL || '/default-avatar.png'} 
+                alt="Avatar del usuario"
+                onError={(e) => {
+                  e.target.src = '/default-avatar.png';
+                }}
+              />
+            </div>
+            <div className="user-details">
+              <h1>{user.displayName || user.email}</h1>
+              <p>{user.email}</p>
+              <p>Miembro desde: {user.metadata?.creationTime ? 
+                new Date(user.metadata.creationTime).toLocaleDateString() : 
+                'Fecha no disponible'
+              }</p>
           </div>
         </div>
         <button onClick={handleLogout} className="btn-logout">
@@ -54,8 +64,8 @@ const PerfilPage = () => {
         </button>
       </header>
 
-      <main className="profile-content">
-        <section className="stats-section">
+      <section className="profile-content">
+        <div className="stats-section">
           <h2>Estadísticas de Lectura</h2>
           <div className="stats-grid">
             <div className="stat-item">
@@ -71,12 +81,13 @@ const PerfilPage = () => {
               <span className="stat-label">Reseñas Escritas</span>
             </div>
           </div>
-        </section>
+        </div>
 
-        <section className="preferences-section">
+        <div className="preferences-section">
           <h2>Preferencias</h2>
           <PreferencesForm onSave={handlePreferencesSave} />
-        </section>
+        </div>
+      </section>
       </main>
     </div>
   );
