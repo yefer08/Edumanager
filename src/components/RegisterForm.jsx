@@ -134,11 +134,21 @@ export default function RegisterForm() {
       await updateProfile(user, { displayName });
       
       // Guardar preferencias literarias del usuario
-      if (formData.favoriteGenre) {
-        await updatePreferences({
-          generosFavoritos: [formData.favoriteGenre],
-          autoresFavoritos: []
-        });
+      const userPreferences = {
+        generoFavorito: formData.favoriteGenre,
+        generosFavoritos: [formData.favoriteGenre],
+        autoresFavoritos: [],
+        notificaciones: true,
+        privacidad: 'publico'
+      };
+      
+      console.log('💾 Guardando preferencias del usuario:', userPreferences);
+      
+      const result = await updatePreferences(userPreferences);
+      if (result.success) {
+        console.log('✅ Preferencias guardadas exitosamente');
+      } else {
+        console.warn('⚠️ No se pudieron guardar las preferencias:', result.error);
       }
       
       console.log("Usuario registrado exitosamente:", {
@@ -146,7 +156,7 @@ export default function RegisterForm() {
         email: user.email,
         displayName: displayName,
         additionalData: formData,
-        generoFavorito: formData.favoriteGenre
+        preferences: userPreferences
       });
       
       // Actualizar contexto de autenticación

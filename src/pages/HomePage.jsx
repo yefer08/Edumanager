@@ -1,12 +1,22 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import Navigation from '../components/Navigation';
 import Header from '../components/Header';
 import BookCarousel from '../components/BookCarousel';
 import RecommendationsSystem from '../components/RecommendationsSystem';
+import { AuthContext } from '../context/AuthContext';
+import { PreferencesContext } from '../context/PreferencesContext';
 import useOpenLibrary from '../hooks/useOpenLibrary';
 
 const HomePage = () => {
+  const { user } = useContext(AuthContext);
+  const { preferences } = useContext(PreferencesContext);
   const { books, loading, error } = useOpenLibrary();
+
+  // Verificar si el usuario tiene preferencias configuradas
+  const hasPreferences = preferences && (
+    preferences.generoFavorito || 
+    (preferences.generosFavoritos && preferences.generosFavoritos.length > 0)
+  );
 
   if (loading) return (
     <div className="loading">
@@ -28,6 +38,20 @@ const HomePage = () => {
       <Header />
       
       <main className="main-content-home">
+        {/* Indicador de personalización */}
+        {user && hasPreferences && (
+          <div className="personalization-indicator">
+            <div className="personalization-content">
+              <span className="indicator-icon">✨</span>
+              <div className="indicator-text">
+                <strong>¡Recomendaciones Personalizadas!</strong>
+                <p>Basadas en tu género favorito: <strong>{preferences.generoFavorito}</strong></p>
+              </div>
+              <span className="indicator-badge">🎯</span>
+            </div>
+          </div>
+        )}
+
         {/* Sistema de Recomendaciones Inteligente */}
         <RecommendationsSystem />
         

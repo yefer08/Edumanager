@@ -18,6 +18,18 @@ const BibliotecaPage = () => {
     'Aventura', 'Drama', 'Infantil', 'Juvenil', 'Autoayuda'
   ];
 
+  // Obtener parámetros de búsqueda desde la URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const searchQuery = urlParams.get('search');
+    
+    if (searchQuery) {
+      setSearchTerm(searchQuery);
+      setIsSearching(true);
+      searchBooks(searchQuery, 20).finally(() => setIsSearching(false));
+    }
+  }, []);
+
   useEffect(() => {
     setFilteredBooks(books || []);
   }, [books]);
@@ -28,6 +40,11 @@ const BibliotecaPage = () => {
       setIsSearching(true);
       await searchBooks(searchTerm, 20);
       setIsSearching(false);
+      
+      // Actualizar URL con el término de búsqueda
+      const newUrl = new URL(window.location);
+      newUrl.searchParams.set('search', searchTerm);
+      window.history.pushState({}, '', newUrl);
     }
   };
 
@@ -37,6 +54,11 @@ const BibliotecaPage = () => {
       setIsSearching(true);
       await searchBooksBySubject(genre, 20);
       setIsSearching(false);
+      
+      // Limpiar parámetro de búsqueda cuando se selecciona un género
+      const newUrl = new URL(window.location);
+      newUrl.searchParams.delete('search');
+      window.history.pushState({}, '', newUrl);
     }
   };
 
@@ -44,6 +66,11 @@ const BibliotecaPage = () => {
     setSearchTerm('');
     setSelectedGenre('');
     setFilteredBooks(books || []);
+    
+    // Limpiar parámetros de URL
+    const newUrl = new URL(window.location);
+    newUrl.searchParams.delete('search');
+    window.history.pushState({}, '', newUrl);
   };
 
   if (loading || isSearching) return (
