@@ -1,10 +1,24 @@
-import React, { memo } from 'react';
-import { useImageLoader, BOOK_PLACEHOLDER } from '../hooks/useImageLoader';
+import React, { memo, useState } from 'react';
+
+// Imagen placeholder optimizada como SVG en Base64
+const BOOK_PLACEHOLDER = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjE2MCIgdmlld0JveD0iMCAwIDEyMCAxNjAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iMTYwIiBmaWxsPSIjRjNGNEY2IiBzdHJva2U9IiNFNUU3RUIiLz4KPHA+YXRoIGQ9Ik00MCA2MEg4MFY2NEg0MFY2MFoiIGZpbGw9IiM5Q0EzQUYiLz4KPHA+YXRoIGQ9Ik00MCA3MEg4MFY3NEg0MFY3MFoiIGZpbGw9IiM5Q0EzQUYiLz4KPHA+YXRoIGQ9Ik00MCA4MEg3MFY4NEg0MFY4MFoiIGZpbGw9IiM5Q0EzQUYiLz4KPHA+YXRoIGQ9Ik00NSA0NUg3NVY1NUg0NVY0NVoiIGZpbGw9IiNEMUQ1REIiLz4KPC9zdmc+";
 
 const BookCard = memo(({ book }) => {
-  const { imageSrc, loading, error } = useImageLoader(book?.imagen, BOOK_PLACEHOLDER);
+  const [imageError, setImageError] = useState(false);
+  const [imageLoading, setImageLoading] = useState(true);
 
   if (!book) return null;
+
+  const handleImageError = () => {
+    setImageError(true);
+    setImageLoading(false);
+  };
+
+  const handleImageLoad = () => {
+    setImageLoading(false);
+  };
+
+  const imageSrc = imageError || !book.imagen ? BOOK_PLACEHOLDER : book.imagen;
 
   return (
     <div className="book-card">
@@ -13,12 +27,14 @@ const BookCard = memo(({ book }) => {
           src={imageSrc}
           alt={book.titulo}
           loading="lazy"
+          onError={handleImageError}
+          onLoad={handleImageLoad}
           style={{
-            opacity: loading ? 0.7 : 1,
+            opacity: imageLoading ? 0.7 : 1,
             transition: 'opacity 0.3s ease'
           }}
         />
-        {loading && (
+        {imageLoading && !imageError && book.imagen && (
           <div className="image-loader">
             <div className="spinner"></div>
           </div>

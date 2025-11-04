@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { auth } from "../config/firebaseConfig";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { AuthContext } from '../context/AuthContext';
+import { PreferencesContext } from '../context/PreferencesContext';
 
 export default function RegisterForm() {
   const [formData, setFormData] = useState({
@@ -15,7 +16,8 @@ export default function RegisterForm() {
     confirmPassword: '',
     birthDate: '',
     gender: '',
-    grade: ''
+    grade: '',
+    favoriteGenre: '' // Añadido género literario favorito
   });
   
   const [loading, setLoading] = useState(false);
@@ -24,7 +26,27 @@ export default function RegisterForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const { login } = useContext(AuthContext);
+  const { updatePreferences } = useContext(PreferencesContext);
   const navigate = useNavigate();
+
+  // Lista de géneros literarios disponibles
+  const availableGenres = [
+    'Ficción',
+    'No Ficción',
+    'Misterio',
+    'Romance',
+    'Ciencia Ficción',
+    'Fantasía',
+    'Biografía',
+    'Historia',
+    'Autoayuda',
+    'Poesía',
+    'Aventura',
+    'Terror',
+    'Drama',
+    'Infantil',
+    'Juvenil'
+  ];
 
   const validateForm = () => {
     const newErrors = {};
@@ -68,6 +90,10 @@ export default function RegisterForm() {
       newErrors.grade = 'El grado académico es requerido';
     }
     
+    if (!formData.favoriteGenre) {
+      newErrors.favoriteGenre = 'Selecciona un género literario de tu interés';
+    }
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -104,13 +130,23 @@ export default function RegisterForm() {
       console.log("Usuario registrado:", user);
       
       // Actualizar perfil del usuario
-      const displayName = `${formData.firstName} ${formData.lastName}`;
+      const displayName = `${formData.firstName} ${formData.secondName || ''} ${formData.lastName} ${formData.secondLastName || ''}`.trim();
       await updateProfile(user, { displayName });
+      
+      // Guardar preferencias literarias del usuario
+      if (formData.favoriteGenre) {
+        await updatePreferences({
+          generosFavoritos: [formData.favoriteGenre],
+          autoresFavoritos: []
+        });
+      }
       
       console.log("Usuario registrado exitosamente:", {
         uid: user.uid,
         email: user.email,
-        displayName: displayName
+        displayName: displayName,
+        additionalData: formData,
+        generoFavorito: formData.favoriteGenre
       });
       
       // Actualizar contexto de autenticación
@@ -379,6 +415,28 @@ export default function RegisterForm() {
               <option value="postgrado">Postgrado</option>
             </select>
             {errors.grade && <span className="error-text">{errors.grade}</span>}
+          </div>
+
+          {/* Género Literario Favorito */}
+          <div className="form-group">
+            <label htmlFor="favoriteGenre">Género Literario de Interés *</label>
+            <select
+              id="favoriteGenre"
+              name="favoriteGenre"
+              value={formData.favoriteGenre}
+              onChange={handleChange}
+              className={errors.favoriteGenre ? 'error' : ''}
+              disabled={loading}
+            >
+              <option value="">Selecciona un género</option>
+              {availableGenres.map(genre => (
+                <option key={genre} value={genre}>
+                  {genre}
+                </option>
+              ))}
+            </select>
+            {errors.favoriteGenre && <span className="error-text">{errors.favoriteGenre}</span>}
+            <small className="help-text">Esto nos ayudará a recomendarte libros de tu interés</small>
           </div>
 
           <button
