@@ -4,7 +4,6 @@ import Header from '../components/Header';
 import BookCard from '../components/BookCard';
 import useOpenLibrary from '../hooks/useOpenLibrary';
 import useSearch from '../hooks/useSearch';
-
 const BibliotecaPage = () => {
   const { loading, error, searchBooksBySubject } = useOpenLibrary();
   const { searchResults, isSearching, searchError } = useSearch();
@@ -45,74 +44,8 @@ const BibliotecaPage = () => {
 
     load();
   }, [searchResults, selectedGenre, searchBooksBySubject]);
-        } catch (err) {
-          console.error('Error en la búsqueda:', err);
-          setFilteredBooks([]);
-        } finally {
-          setLoading(false);
-        }
-      };
 
-      handleSearch();
-
-      // Configurar un listener para cambios en la URL
-      const handlePopState = () => handleSearch();
-      window.addEventListener('popstate', handlePopState);
-    
-      return () => window.removeEventListener('popstate', handlePopState);
-    if (loading || isSearching) return (
-
-  const handleGenreChange = async (genre) => {
-    setSelectedGenre(genre);
-    setFilteredBooks([]); // Limpiar los libros antes de cargar nuevos
-    
-    try {
-      if (!genre) {
-        const genreBooks = await searchBooksBySubject('fiction', 20);
-        setFilteredBooks(genreBooks);
-        return;
-      }
-      
-      // Buscar libros por género
-      const genreBooks = await searchBooksBySubject(genre.toLowerCase(), 20);
-      if (Array.isArray(genreBooks)) {
-        // Asegurarse de que cada libro tenga el género seleccionado
-    if (error || searchError) return (
-          ...book,
-          genero: genre
-        }));
-        setFilteredBooks(booksWithGenre);
-      }
-    } catch (error) {
-      console.error('Error al cargar libros por género:', error);
-      setFilteredBooks([]);
-    }
-            <p>Error: {error || searchError}</p>
-
-  // Función para limpiar filtros
-  const clearFilters = () => {
-    setSelectedGenre('');
-    handleGenreChange(''); // Esto cargará los libros de ficción por defecto
-  };
-
-  if (loading) return (
-    <div className="biblioteca-page">
-      <Navigation />
-      <Header />
-      <main className="main-content">
-        <header className="page-header">
-          <h1>Biblioteca Digital - Open Library</h1>
-          <p>Explora millones de libros reales de la biblioteca mundial</p>
-        </header>
-        <div className="loading">
-          <div className="spinner"></div>
-          <p>Cargando biblioteca...</p>
-        </div>
-      </main>
-    </div>
-  );
-  
-  const handleGenreChange = async (genre) => {
+  const handleGenreChange = (genre) => {
     setSelectedGenre(genre);
   };
 
@@ -130,12 +63,81 @@ const BibliotecaPage = () => {
   };
 
   if (loading || isSearching) return (
+    <div className="biblioteca-page">
+      <Navigation />
+      <Header />
+      <main className="main-content">
+        <header className="page-header">
+          <h1>Biblioteca Digital - Open Library</h1>
+          <p>Explora millones de libros reales de la biblioteca mundial</p>
+        </header>
+        <div className="loading">
+          <div className="spinner"></div>
+          <p>Cargando biblioteca...</p>
+        </div>
+      </main>
+    </div>
+  );
+
+  if (error || searchError) return (
+    <div className="biblioteca-page">
+      <Navigation />
+      <Header />
+      <main className="main-content">
+        <header className="page-header">
+          <h1>Biblioteca Digital - Open Library</h1>
+          <p>Explora millones de libros reales de la biblioteca mundial</p>
+        </header>
+        <div className="error">
+          <p>Error: {error || searchError}</p>
+          <button onClick={() => window.location.reload()} className="btn-primary">
+            Reintentar
+          </button>
+        </div>
+      </main>
+    </div>
+  );
+
+  return (
+    <div className="biblioteca-page">
+      <Navigation />
+      <Header />
+      <main className="main-content">
+        <header className="page-header">
+          <h1>Biblioteca Digital - Open Library</h1>
+          <p>Explora millones de libros reales de la biblioteca mundial</p>
+        </header>
+
+        <div className="filters-section">
+          <div className="genre-filter">
+            <select
+              value={selectedGenre}
+              onChange={(e) => handleGenreChange(e.target.value)}
+              className="library-genre-select"
+              aria-label="Filtrar por género"
+              disabled={isSearching}
+            >
+              <option value="" className="genre-option">Todos los géneros</option>
+              {availableGenres.map(genre => (
+                <option key={genre} value={genre} className="genre-option">{genre}</option>
+              ))}
+            </select>
+          </div>
+
+          {selectedGenre && (
+            <button onClick={clearFilters} className="clear-filters-btn">
+              ✖️ Limpiar filtros
+            </button>
+          )}
+        </div>
+
+        <div className="results-info">
           <p>
             Mostrando {filteredBooks.length} libro{filteredBooks.length !== 1 ? 's' : ''}
             {selectedGenre && ` de ${selectedGenre}`}
           </p>
         </div>
-        
+
         {filteredBooks.length > 0 ? (
           <div className="books-grid">
             {filteredBooks.map((book, index) => (
@@ -151,7 +153,7 @@ const BibliotecaPage = () => {
             </button>
           </div>
         )}
-        
+
         <div className="open-library-credit">
           <p>
             <strong>Powered by Open Library</strong> - 

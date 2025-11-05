@@ -313,6 +313,18 @@
   padding: 2rem 0;
 }
 
+/* Barra de información de resultados (ej. "Mostrando 20 libros") */
+.results-info {
+  /* Fondo eliminado: dejar el texto visible sin la caja negra */
+  background: transparent;
+  color: inherit;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  margin: 0 auto 1rem;
+  max-width: 1200px;
+  text-align: left;
+}
+
 /* Filtros */
 .filters-section {
   display: flex;
@@ -322,8 +334,10 @@
   padding: 1rem;
   flex-wrap: wrap;
   align-items: center;
-  background: rgba(212, 165, 116, 0.1);
+  /* Hacer el fondo más transparente para que se vea el fondo, manteniendo legibilidad */
+  background: rgba(255, 255, 255, 0.65);
   border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.06);
 }
 
 .library-genre-select {
@@ -420,7 +434,8 @@
 
 /* Hero section */
 .hero-section {
-  background: linear-gradient(135deg, #3498db, #2c3e50);
+  /* Mantener el mismo degradado pero más transparente para dejar ver el fondo */
+  background: linear-gradient(135deg, rgba(52,152,219,0.65), rgba(44,62,80,0.6));
   color: white;
   padding: 4rem 2rem;
   border-radius: 10px;
@@ -1193,7 +1208,8 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,0.55);
+  /* Hacer la capa oscura menos opaca para que los banners sean más transparentes */
+  background: rgba(0,0,0,0.35);
   pointer-events: none;
 }
 
@@ -1218,7 +1234,8 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,0.55);
+  /* Menos opacidad para la página de favoritos */
+  background: rgba(0,0,0,0.35);
   pointer-events: none;
 }
 
@@ -1231,10 +1248,17 @@
 .page-header {
   text-align: center;
   padding: 2rem;
-  background: rgba(255, 255, 255, 0.1);
+  /* Quitar fondo del header: dejar solo el texto sobre el fondo de la página */
+  background: transparent;
   margin: 2rem;
   border-radius: 15px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: none;
+}
+
+/* Mantener legibilidad del texto sobre el fondo de la página */
+.page-header h1,
+.page-header p {
+  text-shadow: 2px 2px 6px rgba(0,0,0,0.65);
 }
 
 .page-header h1 {
@@ -2137,7 +2161,8 @@
 .page-header {
   text-align: center;
   padding: 2rem 0;
-  background: linear-gradient(135deg, #007bff, #0056b3);
+  /* Se elimina el fondo azul: dejar transparente pero mantener el color del texto */
+  background: transparent;
   color: white;
   margin-bottom: 2rem;
 }
