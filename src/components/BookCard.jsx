@@ -1,4 +1,5 @@
-import React, { memo, useState } from 'react';
+import React, { memo, useState, useContext } from 'react';
+import { PreferencesContext } from '../context/PreferencesContext';
 
 // Imagen placeholder optimizada como SVG en Base64
 const BOOK_PLACEHOLDER = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjE2MCIgdmlld0JveD0iMCAwIDEyMCAxNjAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iMTYwIiBmaWxsPSIjRjNGNEY2IiBzdHJva2U9IiNFNUU3RUIiLz4KPHA+YXRoIGQ9Ik00MCA2MEg4MFY2NEg0MFY2MFoiIGZpbGw9IiM5Q0EzQUYiLz4KPHA+YXRoIGQ9Ik00MCA3MEg4MFY3NEg0MFY3MFoiIGZpbGw9IiM5Q0EzQUYiLz4KPHA+YXRoIGQ9Ik00MCA4MEg3MFY4NEg0MFY4MFoiIGZpbGw9IiM5Q0EzQUYiLz4KPHA+YXRoIGQ9Ik00NSA0NUg3NVY1NUg0NVY0NVoiIGZpbGw9IiNEMUQ1REIiLz4KPC9zdmc+";
@@ -71,6 +72,19 @@ const BookCard = memo(({ book, libro }) => {
     );
   };
 
+  const { preferences, addFavoriteBook, removeFavoriteBook, isBookFavorited } = useContext(PreferencesContext);
+
+  const isFav = isBookFavorited ? isBookFavorited(bookData.id) : (preferences?.librosFavoritos || []).some(b => b.id === bookData.id);
+
+  const handleToggleFavorite = () => {
+    if (isFav) {
+      removeFavoriteBook(bookData.id);
+    } else {
+      // Guardar los datos mínimos necesarios
+      addFavoriteBook({ id: bookData.id, titulo: bookData.titulo, autor: bookData.autor, imagen: bookData.imagen, genero: bookData.genero });
+    }
+  };
+
   return (
     <div className="book-card">
       <div className="book-image-container">
@@ -130,7 +144,7 @@ const BookCard = memo(({ book, libro }) => {
         {/* Estado de disponibilidad */}
         <div className="book-footer">
           <span className={`availability ${bookData.disponible ? 'available' : 'unavailable'}`}>
-            {bookData.disponible ? '✓ Disponible' : '✗ No disponible'}
+            {bookData.disponible ? 'Disponible' : 'No disponible'}
           </span>
           
           {/* Popularidad */}
@@ -157,7 +171,9 @@ const BookCard = memo(({ book, libro }) => {
         
         <div className="book-actions">
           <button className="btn-primary">Ver Detalles</button>
-          <button className="btn-secondary">♡ Favorito</button>
+          <button onClick={handleToggleFavorite} className={`btn-secondary ${isFav ? 'favorited' : ''}`} aria-pressed={isFav}>
+            {isFav ? 'Quitar de Favoritos' : 'Agregar a Favoritos'}
+          </button>
         </div>
       </div>
     </div>

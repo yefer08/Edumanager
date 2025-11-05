@@ -104,7 +104,7 @@ const BibliotecaPage = () => {
       
       <main className="main-content">
         <header className="page-header">
-          <h1>📚 Biblioteca Digital - Open Library</h1>
+          <h1>Biblioteca Digital - Open Library</h1>
           <p>Explora millones de libros reales de la biblioteca mundial</p>
         </header>
         
@@ -119,7 +119,7 @@ const BibliotecaPage = () => {
                 className="search-input"
               />
               <button type="submit" className="search-button">
-                🔍 Buscar
+                Buscar
               </button>
             </div>
           </form>
@@ -170,7 +170,7 @@ const BibliotecaPage = () => {
         
         <div className="open-library-credit">
           <p>
-            📚 <strong>Powered by Open Library</strong> - 
+            <strong>Powered by Open Library</strong> - 
             Acceso a más de 20 millones de libros catalogados
           </p>
         </div>

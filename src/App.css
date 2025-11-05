@@ -1114,30 +1114,85 @@
   }
 }
 
-/* Estilos para páginas de tareas */
+/* Estilos para indicador de carga */
+.loading-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  font-size: 1.2rem;
+  color: #2c3e50;
+  background-color: #f8f9fa;
+}
+
+/* Estilos para página de biblioteca */
+.biblioteca-page {
+  min-height: 100vh;
+  background: url('/images/Libro1.jpg') !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  position: relative;
+  color: #fff;
+}
+
+.biblioteca-page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  pointer-events: none;
+}
+
+.biblioteca-page .main-content {
+  position: relative;
+  z-index: 1;
+  padding: 3rem 1.5rem;
+}
+
+/* Estilos para página de favoritos */
 .tareas-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  background: url('/images/libro2.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+  color: #fff;
+}
+
+.tareas-page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  pointer-events: none;
+}
+
+.tareas-page .main-content {
+  position: relative;
+  z-index: 1;
+  padding: 3rem 1.5rem;
 }
 
 .page-header {
   text-align: center;
   padding: 2rem;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.1);
   margin: 2rem;
   border-radius: 15px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .page-header h1 {
-  color: #2c3e50;
+  color: #ffffff;
   font-size: 2.5rem;
   margin-bottom: 0.5rem;
   font-weight: 600;
 }
 
 .page-header p {
-  color: #7f8c8d;
+  color: rgba(255, 255, 255, 0.9);
   font-size: 1.1rem;
 }
 
@@ -2026,11 +2081,6 @@
 }
 
 /* === BIBLIOTECA PAGE STYLES === */
-.biblioteca-page {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-}
-
 .page-header {
   text-align: center;
   padding: 2rem 0;

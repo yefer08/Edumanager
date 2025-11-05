@@ -8,37 +8,35 @@ export const PreferencesProvider = ({ children }) => {
   const [preferences, setPreferences] = useState({
     generosFavoritos: [],
     autoresFavoritos: [],
-    notificaciones: true,
-    privacidad: 'publico'
+    librosFavoritos: [],
   });
   const [loading, setLoading] = useState(false);
 
   // Por ahora no cargaremos desde Firestore para evitar errores de permisos
   useEffect(() => {
-    if (user) {
-      console.log('Usuario logueado, cargando preferencias locales por ahora...');
-      // Aquí podrías cargar desde localStorage o usar valores por defecto
-      const savedPreferences = localStorage.getItem(`preferences_${user.uid}`);
+    // Cargar preferencias desde localStorage, por usuario si está autenticado o como 'guest'
+    const key = `preferences_${user ? user.uid : 'guest'}`;
+    try {
+      const savedPreferences = localStorage.getItem(key);
       if (savedPreferences) {
         setPreferences(JSON.parse(savedPreferences));
       }
+    } catch (err) {
+      console.error('Error cargando preferencias desde localStorage:', err);
     }
   }, [user]);
 
   const updatePreferences = async (newPreferences) => {
-    if (user) {
-      try {
-        // Guardar en localStorage por ahora
-        localStorage.setItem(`preferences_${user.uid}`, JSON.stringify(newPreferences));
-        setPreferences(newPreferences);
-        console.log('Preferencias guardadas localmente');
-        return { success: true };
-      } catch (error) {
-        console.error('Error updating preferences:', error);
-        return { success: false, error: error.message };
-      }
+    try {
+      const key = `preferences_${user ? user.uid : 'guest'}`;
+      localStorage.setItem(key, JSON.stringify(newPreferences));
+      setPreferences(newPreferences);
+      console.log('Preferencias guardadas localmente');
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating preferences:', error);
+      return { success: false, error: error.message };
     }
-    return { success: false, error: 'Usuario no autenticado' };
   };
 
   const addFavoriteGenre = (genre) => {
@@ -67,6 +65,24 @@ export const PreferencesProvider = ({ children }) => {
     updatePreferences({ ...preferences, autoresFavoritos: updatedAuthors });
   };
 
+  // Favoritos de libros: guardar objetos de libro (con id)
+  const addFavoriteBook = (book) => {
+    const updated = [...(preferences.librosFavoritos || [])];
+    if (!updated.find(b => b.id === book.id)) {
+      updated.push(book);
+      updatePreferences({ ...preferences, librosFavoritos: updated });
+    }
+  };
+
+  const removeFavoriteBook = (bookId) => {
+    const updated = (preferences.librosFavoritos || []).filter(b => b.id !== bookId);
+    updatePreferences({ ...preferences, librosFavoritos: updated });
+  };
+
+  const isBookFavorited = (bookId) => {
+    return (preferences.librosFavoritos || []).some(b => b.id === bookId);
+  };
+
   const value = {
     preferences,
     loading,
@@ -75,6 +91,9 @@ export const PreferencesProvider = ({ children }) => {
     removeFavoriteGenre,
     addFavoriteAuthor,
     removeFavoriteAuthor
+    ,addFavoriteBook,
+    removeFavoriteBook,
+    isBookFavorited
   };
 
   return (

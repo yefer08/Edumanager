@@ -40,7 +40,7 @@ const RecommendationsSystem = () => {
       const userGenres = userPreferences.generosFavoritos || [];
       const primaryGenre = userPreferences.generoFavorito || userGenres[0];
       
-      console.log('📚 Generando recomendaciones para:', { primaryGenre, userGenres });
+      console.log('Generando recomendaciones para:', { primaryGenre, userGenres });
       
       let allRecommendations = [];
 
@@ -252,15 +252,15 @@ const RecommendationsSystem = () => {
     try {
       let recommendedBooks = [];
 
-      console.log('🔍 Generando recomendaciones...', { user: !!user, preferences });
+      console.log('Generando recomendaciones...', { user: !!user, preferences });
 
       if (user && preferences && (preferences.generosFavoritos?.length > 0 || preferences.generoFavorito)) {
         // Usuario con preferencias definidas - Recomendaciones personalizadas
-        console.log('👤 Usuario con preferencias encontrado');
+        console.log('Usuario con preferencias encontrado');
         recommendedBooks = await fetchPersonalizedBooks(preferences);
         
         if (recommendedBooks.length === 0) {
-          console.log('⚠️ No se pudieron obtener recomendaciones personalizadas, usando por defecto');
+          console.log('No se pudieron obtener recomendaciones personalizadas, usando por defecto');
           recommendedBooks = await getDefaultRecommendations();
         }
       } else {
@@ -321,7 +321,7 @@ const RecommendationsSystem = () => {
     return (
       <div className="recommendations-section">
         <div className="section-header">
-          <h2>🎯 Recomendaciones Para Ti</h2>
+          <h2>Recomendaciones Para Ti</h2>
           <p>Hubo un problema cargando las recomendaciones</p>
         </div>
         <div className="error-state">
@@ -351,7 +351,7 @@ const RecommendationsSystem = () => {
         )}
         
         <button onClick={refreshRecommendations} className="refresh-btn" title="Actualizar recomendaciones">
-          🔄 Actualizar
+          Actualizar
         </button>
       </div>
 
@@ -370,7 +370,7 @@ const RecommendationsSystem = () => {
         </div>
       ) : (
         <div className="no-recommendations">
-          <div className="no-recommendations-icon">📚</div>
+          <div className="no-recommendations-icon"></div>
           <h3>No hay recomendaciones disponibles</h3>
           <p>Intenta actualizar tus preferencias de género en tu perfil.</p>
           <button onClick={refreshRecommendations} className="btn-primary">

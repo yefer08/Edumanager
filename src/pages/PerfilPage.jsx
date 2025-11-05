@@ -73,7 +73,7 @@ const PerfilPage = () => {
               <span className="stat-label">Libros Leídos</span>
             </div>
             <div className="stat-item">
-              <span className="stat-number">0</span>
+              <span className="stat-number">{preferences?.librosFavoritos ? preferences.librosFavoritos.length : 0}</span>
               <span className="stat-label">Libros Favoritos</span>
             </div>
             <div className="stat-item">
