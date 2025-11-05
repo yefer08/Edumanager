@@ -316,19 +316,72 @@
 /* Filtros */
 .filters-section {
   display: flex;
+  justify-content: center;
   gap: 1rem;
   margin: 2rem 0;
+  padding: 1rem;
   flex-wrap: wrap;
   align-items: center;
+  background: rgba(212, 165, 116, 0.1);
+  border-radius: 12px;
 }
 
-.search-input,
-.genre-select {
-  padding: 10px;
-  border: 1px solid #bdc3c7;
-  border-radius: 5px;
+.library-genre-select {
+  padding: 12px;
+  border: 2px solid #d4a574;
+  border-radius: 8px;
   font-size: 1rem;
   min-width: 200px;
+  background-color: white;
+  color: #2c3e50;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d4a574' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1em;
+  padding-right: 2.5rem;
+}
+
+.library-genre-select:hover {
+  border-color: #b8935a;
+}
+
+.library-genre-select:focus {
+  outline: none;
+  border-color: #b8935a;
+  box-shadow: 0 0 0 2px rgba(184, 147, 90, 0.2);
+}
+
+.library-genre-select option {
+  padding: 8px;
+  background: white;
+  color: #2c3e50;
+}
+
+.filters-section .genre-select {
+  padding: 12px;
+  border: 2px solid #d4a574;
+  border-radius: 8px;
+  font-size: 1rem;
+  min-width: 200px;
+  background-color: white;
+  color: #2c3e50;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.filters-section .genre-select:hover {
+  border-color: #b8935a;
+}
+
+.filters-section .genre-select:focus {
+  outline: none;
+  border-color: #b8935a;
+  box-shadow: 0 0 0 2px rgba(184, 147, 90, 0.2);
 }
 
 /* Estadísticas */
@@ -1842,13 +1895,13 @@
 .results-info {
   margin: 1.5rem 0;
   padding: 1rem;
-  background: rgba(212, 165, 116, 0.1);
+  background: rgb(0, 0, 0);
   border-radius: 8px;
   text-align: center;
 }
 
 .results-info p {
-  color: #2c3e50;
+  color: #ffffff;
   font-weight: 500;
   margin: 0;
 }
@@ -1911,7 +1964,7 @@
 /* === ENHANCED BOOK ORGANIZATION STYLES === */
 
 /* Género badges mejorados */
-.genre-badge {
+.book-image-container .genre-badge {
   position: absolute;
   top: 10px;
   right: 10px;
@@ -2216,7 +2269,8 @@
 .results-info {
   margin-bottom: 1.5rem;
   font-size: 0.95rem;
-  color: #6c757d;
+  color: #2c3e50; /* dark color for better contrast */
+  opacity: 1; /* ensure text is not translucent */
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -2557,7 +2611,7 @@
   box-shadow: 0 12px 30px rgba(0, 123, 255, 0.2);
 }
 
-.recommendations-section .genre-badge {
+.recommendations-section .book-image-container .genre-badge {
   background: linear-gradient(135deg, #6610f2, #007bff) !important;
   color: white;
   font-weight: 700;

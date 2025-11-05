@@ -4,6 +4,7 @@ import { auth } from "../config/firebaseConfig";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { AuthContext } from '../context/AuthContext';
 import { PreferencesContext } from '../context/PreferencesContext';
+import useOpenLibrary from '../hooks/useOpenLibrary';
 
 export default function RegisterForm() {
   const [formData, setFormData] = useState({
@@ -26,7 +27,8 @@ export default function RegisterForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const { login } = useContext(AuthContext);
-  const { updatePreferences } = useContext(PreferencesContext);
+  const { updatePreferences, addFavoriteBook } = useContext(PreferencesContext);
+  const { searchBooksBySubject, searchBooks } = useOpenLibrary();
   const navigate = useNavigate();
 
   // Lista de géneros literarios disponibles
@@ -146,6 +148,53 @@ export default function RegisterForm() {
       const result = await updatePreferences(userPreferences);
       if (result.success) {
         console.log('Preferencias guardadas exitosamente');
+
+        // Intentar añadir automáticamente algunos libros de ejemplo a favoritos
+        try {
+          const slugMap = {
+            'Ficción': 'fiction',
+            'No Ficción': 'nonfiction',
+            'Misterio': 'mystery',
+            'Romance': 'romance',
+            'Ciencia Ficción': 'science_fiction',
+            'Fantasía': 'fantasy',
+            'Biografía': 'biography',
+            'Historia': 'history',
+            'Autoayuda': 'self_help',
+            'Poesía': 'poetry',
+            'Aventura': 'adventure',
+            'Terror': 'horror',
+            'Thriller': 'thriller',
+            'Drama': 'drama',
+            'Infantil': 'children',
+            'Juvenil': 'young_adult',
+            'Ciencia': 'science',
+            'Filosofía': 'philosophy'
+          };
+
+          const slug = slugMap[formData.favoriteGenre] || formData.favoriteGenre.toLowerCase().replace(/\s+/g, '_');
+          let fetched = [];
+          try {
+            fetched = await searchBooksBySubject(slug, 8);
+          } catch (err) {
+            console.warn('searchBooksBySubject falló, intentando searchBooks', err);
+            fetched = await searchBooks(formData.favoriteGenre, 8);
+          }
+
+          if (fetched && fetched.length > 0) {
+            const toAdd = fetched.slice(0, 6);
+            toAdd.forEach(b => {
+              try {
+                addFavoriteBook({ id: b.id, titulo: b.titulo, autor: b.autor, imagen: b.imagen, genero: b.genero });
+              } catch (err) {
+                console.warn('Error añadiendo favorito:', err);
+              }
+            });
+          }
+        } catch (err) {
+          console.warn('No se pudieron añadir libros automáticamente a favoritos:', err);
+        }
+
       } else {
         console.warn('No se pudieron guardar las preferencias:', result.error);
       }

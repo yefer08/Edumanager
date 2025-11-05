@@ -3,13 +3,13 @@ import Navigation from '../components/Navigation';
 import Header from '../components/Header';
 import BookCard from '../components/BookCard';
 import useOpenLibrary from '../hooks/useOpenLibrary';
+import useSearch from '../hooks/useSearch';
 
 const BibliotecaPage = () => {
-  const { books, loading, error, searchBooks, searchBooksBySubject } = useOpenLibrary();
+  const { loading, error, searchBooksBySubject } = useOpenLibrary();
+  const { searchResults, isSearching, searchError } = useSearch();
   const [filteredBooks, setFilteredBooks] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
   const [selectedGenre, setSelectedGenre] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
 
   // Géneros disponibles en Open Library
   const availableGenres = [
@@ -18,137 +18,121 @@ const BibliotecaPage = () => {
     'Aventura', 'Drama', 'Infantil', 'Juvenil', 'Autoayuda'
   ];
 
-  // Obtener parámetros de búsqueda desde la URL
+  // Manejar resultados de búsqueda o carga inicial
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const searchQuery = urlParams.get('search');
+    const load = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const searchQuery = urlParams.get('search');
+
+      if (searchQuery) {
+        setFilteredBooks(searchResults || []);
+        return;
+      }
+
+      if (selectedGenre) {
+        const genreBooks = await searchBooksBySubject(selectedGenre.toLowerCase(), 20);
+        const booksWithGenre = Array.isArray(genreBooks)
+          ? genreBooks.map(b => ({ ...b, genero: selectedGenre }))
+          : [];
+        setFilteredBooks(booksWithGenre);
+        return;
+      }
+
+      // carga por defecto
+      const defaultBooks = await searchBooksBySubject('fiction', 20);
+      setFilteredBooks(defaultBooks || []);
+    };
+
+    load();
+  }, [searchResults, selectedGenre, searchBooksBySubject]);
+        } catch (err) {
+          console.error('Error en la búsqueda:', err);
+          setFilteredBooks([]);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      handleSearch();
+
+      // Configurar un listener para cambios en la URL
+      const handlePopState = () => handleSearch();
+      window.addEventListener('popstate', handlePopState);
     
-    if (searchQuery) {
-      setSearchTerm(searchQuery);
-      setIsSearching(true);
-      searchBooks(searchQuery, 20).finally(() => setIsSearching(false));
-    }
-  }, []);
-
-  useEffect(() => {
-    setFilteredBooks(books || []);
-  }, [books]);
-
-  const handleSearch = async (e) => {
-    e.preventDefault();
-    if (searchTerm.trim()) {
-      setIsSearching(true);
-      await searchBooks(searchTerm, 20);
-      setIsSearching(false);
-      
-      // Actualizar URL con el término de búsqueda
-      const newUrl = new URL(window.location);
-      newUrl.searchParams.set('search', searchTerm);
-      window.history.pushState({}, '', newUrl);
-    }
-  };
+      return () => window.removeEventListener('popstate', handlePopState);
+    if (loading || isSearching) return (
 
   const handleGenreChange = async (genre) => {
     setSelectedGenre(genre);
-    if (genre) {
-      setIsSearching(true);
-      await searchBooksBySubject(genre, 20);
-      setIsSearching(false);
-      
-      // Limpiar parámetro de búsqueda cuando se selecciona un género
-      const newUrl = new URL(window.location);
-      newUrl.searchParams.delete('search');
-      window.history.pushState({}, '', newUrl);
-    }
-  };
-
-  const clearFilters = () => {
-    setSearchTerm('');
-    setSelectedGenre('');
-    setFilteredBooks(books || []);
+    setFilteredBooks([]); // Limpiar los libros antes de cargar nuevos
     
-    // Limpiar parámetros de URL
-    const newUrl = new URL(window.location);
-    newUrl.searchParams.delete('search');
-    window.history.pushState({}, '', newUrl);
+    try {
+      if (!genre) {
+        const genreBooks = await searchBooksBySubject('fiction', 20);
+        setFilteredBooks(genreBooks);
+        return;
+      }
+      
+      // Buscar libros por género
+      const genreBooks = await searchBooksBySubject(genre.toLowerCase(), 20);
+      if (Array.isArray(genreBooks)) {
+        // Asegurarse de que cada libro tenga el género seleccionado
+    if (error || searchError) return (
+          ...book,
+          genero: genre
+        }));
+        setFilteredBooks(booksWithGenre);
+      }
+    } catch (error) {
+      console.error('Error al cargar libros por género:', error);
+      setFilteredBooks([]);
+    }
+            <p>Error: {error || searchError}</p>
+
+  // Función para limpiar filtros
+  const clearFilters = () => {
+    setSelectedGenre('');
+    handleGenreChange(''); // Esto cargará los libros de ficción por defecto
   };
 
-  if (loading || isSearching) return (
+  if (loading) return (
     <div className="biblioteca-page">
       <Navigation />
       <Header />
-      <div className="loading">
-        <div className="spinner"></div>
-        <p>{isSearching ? 'Buscando en Open Library...' : 'Cargando biblioteca...'}</p>
-      </div>
-    </div>
-  );
-  
-  if (error) return (
-    <div className="biblioteca-page">
-      <Navigation />
-      <Header />
-      <div className="error">
-        <p>Error: {error}</p>
-        <button onClick={() => window.location.reload()} className="btn-primary">
-          Reintentar
-        </button>
-      </div>
-    </div>
-  );
-
-  return (
-    <div className="biblioteca-page">
-      <Navigation />
-      <Header />
-      
       <main className="main-content">
         <header className="page-header">
           <h1>Biblioteca Digital - Open Library</h1>
           <p>Explora millones de libros reales de la biblioteca mundial</p>
         </header>
-        
-        <div className="filters-section">
-          <form onSubmit={handleSearch} className="search-form">
-            <div className="search-box">
-              <input
-                type="text"
-                placeholder="Buscar por título o autor en Open Library..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="search-input"
-              />
-              <button type="submit" className="search-button">
-                Buscar
-              </button>
-            </div>
-          </form>
-          
-          <div className="genre-filter">
-            <select
-              value={selectedGenre}
-              onChange={(e) => handleGenreChange(e.target.value)}
-              className="genre-select"
-            >
-              <option value="">Todos los géneros</option>
-              {availableGenres.map(genre => (
-                <option key={genre} value={genre}>{genre}</option>
-              ))}
-            </select>
-          </div>
-          
-          {(searchTerm || selectedGenre) && (
-            <button onClick={clearFilters} className="clear-filters-btn">
-              ✖️ Limpiar filtros
-            </button>
-          )}
+        <div className="loading">
+          <div className="spinner"></div>
+          <p>Cargando biblioteca...</p>
         </div>
-        
-        <div className="results-info">
+      </main>
+    </div>
+  );
+  
+  const handleGenreChange = async (genre) => {
+    setSelectedGenre(genre);
+  };
+
+  const clearFilters = async () => {
+    setSelectedGenre('');
+    // quitar parámetro de búsqueda si existe
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('search')) {
+      urlParams.delete('search');
+      const newUrl = window.location.pathname + (urlParams.toString() ? `?${urlParams.toString()}` : '');
+      window.history.replaceState({}, '', newUrl);
+    }
+    const defaultBooks = await searchBooksBySubject('fiction', 20);
+    setFilteredBooks(defaultBooks || []);
+  };
+
+  if (loading || isSearching) return (
           <p>
             Mostrando {filteredBooks.length} libro{filteredBooks.length !== 1 ? 's' : ''}
             {selectedGenre && ` de ${selectedGenre}`}
-            {searchTerm && ` que coinciden con "${searchTerm}"`}
           </p>
         </div>
         

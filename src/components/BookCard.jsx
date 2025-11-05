@@ -26,6 +26,8 @@ const BookCard = memo(({ book, libro }) => {
 
   // Función para obtener color del género
   const getGenreColor = (genero) => {
+    if (!genero) return '#757575';
+    
     const colors = {
       'Ciencia Ficción': '#4CAF50',
       'Fantasía': '#9C27B0',
@@ -38,7 +40,13 @@ const BookCard = memo(({ book, libro }) => {
       'Poesía': '#FF5722',
       'Ficción': '#3F51B5',
       'Aventura': '#FF5722',
-      'Thriller': '#F44336'
+      'Thriller': '#F44336',
+      'No Ficción': '#009688',
+      'Terror': '#D32F2F',
+      'Drama': '#795548',
+      'Infantil': '#00BCD4',
+      'Juvenil': '#8BC34A',
+      'Autoayuda': '#FF4081'
     };
     return colors[genero] || '#757575';
   };
@@ -106,16 +114,16 @@ const BookCard = memo(({ book, libro }) => {
           </div>
         )}
         
-        {/* Badge de género */}
-        <div 
-          className="genre-badge"
-          style={{ backgroundColor: getGenreColor(bookData.genero) }}
-        >
-          {bookData.genero}
-        </div>
-      </div>
-      
-      <div className="book-info">
+          {/* Badge de género */}
+          {bookData.genero && (
+            <div 
+              className="genre-badge"
+              style={{ backgroundColor: getGenreColor(bookData.genero) }}
+            >
+              {bookData.genero}
+            </div>
+          )}
+      </div>      <div className="book-info">
         <h4 className="book-title" title={bookData.titulo}>
           {bookData.titulo.length > 45 ? `${bookData.titulo.substring(0, 45)}...` : bookData.titulo}
         </h4>

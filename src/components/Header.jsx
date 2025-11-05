@@ -1,6 +1,10 @@
 import React, { useState, useContext, useRef, useEffect } from 'react';
 import { AuthContext } from '../context/AuthContext';
+import SearchBar from './SearchBar';
+import useSearch from '../hooks/useSearch';
 import '../styles/ProfileDropdown.css';
+
+const defaultAvatar = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiM2NjY2NjYiLz4KPHN2ZyB4PSI4IiB5PSI4IiB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSI+CjxwYXRoIGQ9Ik0yMCAyMVYxOUE0IDQgMCAwIDAgMTYgMTVIOEE0IDQgMCAwIDAgNCAyMVYyMU0xNiA3QTE2IDQgMCAxIDEgOCA3QTQgNCAwIDAgMSAxNiA3WiIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+';
 
 const Header = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -22,15 +26,12 @@ const Header = () => {
     };
   }, []);
 
-  const handleSearch = (e) => {
+    const handleSearch = (e) => {
     e.preventDefault();
     if (searchTerm.trim()) {
-      // Navigate to search results page
-      window.location.href = `/biblioteca?search=${encodeURIComponent(searchTerm)}`;
+      searchParams.set('search', searchTerm.trim());
+      window.location.href = `/biblioteca?${searchParams.toString()}`;
     }
-  };
-
-  const toggleProfileMenu = () => {
     setIsProfileMenuOpen(!isProfileMenuOpen);
   };
 
@@ -45,41 +46,12 @@ const Header = () => {
   };
 
   const navigateToProfile = () => {
-    window.location.href = '/perfil';
-    setIsProfileMenuOpen(false);
-  };
-
-  const navigateToRecommendations = () => {
-    window.location.href = '/recomendaciones';
-    setIsProfileMenuOpen(false);
-  };
 
   const navigateToBiblioteca = () => {
     window.location.href = '/biblioteca';
     setIsProfileMenuOpen(false);
   };
-
-  return (
-    <header className="main-header">
-      <div className="header-content">
-        <div className="search-section">
-          <form onSubmit={handleSearch} className="search-form">
-            <div className="search-input-container">
-              <svg 
-                className="search-icon" 
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              <input
-                type="text"
-                placeholder="Buscar libros, autores, géneros..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="search-input"
-              />
+              <SearchBar />
             </div>
             <button type="submit" className="search-button">
               Buscar
@@ -97,13 +69,18 @@ const Header = () => {
                 aria-haspopup="true"
               >
                 <div className="user-avatar">
-                  <img 
-                    src={user.photoURL || '/default-avatar.png'} 
-                    alt="Avatar"
-                    onError={(e) => {
-                      e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiM2NjY2NjYiLz4KPHN2ZyB4PSI4IiB5PSI4IiB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSI+CjxwYXRoIGQ9Ik0yMCAyMVYxOUE0IDQgMCAwIDAgMTYgMTVIOEE0IDQgMCAwIDAgNCAyMVYyMU0xNiA3QTE2IDQgMCAxIDEgOCA3QTQgNCAwIDAgMSAxNiA3WiIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPHN2Zz4KPHN2Zz4=';
-                    }}
-                  />
+                  {user.photoURL ? (
+                    <img
+                      src={user.photoURL}
+                      alt="Perfil"
+                      onError={(e) => { e.target.src = defaultAvatar; }}
+                    />
+                  ) : (
+                    <svg className="user-avatar-svg" width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="12" cy="8" r="4" fill="#666" />
+                      <path d="M4 20c0-4 4-6 8-6s8 2 8 6" fill="#666" />
+                    </svg>
+                  )}
                 </div>
                 <span className="user-name">
                   {user.displayName || user.email?.split('@')[0] || 'Usuario'}
@@ -120,14 +97,19 @@ const Header = () => {
               {isProfileMenuOpen && (
                 <div className="profile-dropdown">
                   <div className="dropdown-header">
-                    <img 
-                      src={user.photoURL || '/default-avatar.png'} 
-                      alt="Avatar" 
-                      className="dropdown-avatar"
-                      onError={(e) => {
-                        e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiM2NjY2NjYiLz4KPHN2ZyB4PSI4IiB5PSI4IiB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSI+CjxwYXRoIGQ9Ik0yMCAyMVYxOUE0IDQgMCAwIDAgMTYgMTVIOEE0IDQgMCAwIDAgNCAyMVYyMU0xNiA3QTE2IDQgMCAxIDEgOCA3QTQgNCAwIDAgMSAxNiA3WiIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPHN2Zz4KPHN2Zz4=';
-                      }}
-                    />
+                    {user.photoURL ? (
+                      <img
+                        src={user.photoURL}
+                        alt="Perfil"
+                        className="dropdown-avatar"
+                        onError={(e) => { e.target.src = defaultAvatar; }}
+                      />
+                    ) : (
+                      <svg className="dropdown-avatar" width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="8" r="4" fill="#666" />
+                        <path d="M4 20c0-4 4-6 8-6s8 2 8 6" fill="#666" />
+                      </svg>
+                    )}
                     <div className="dropdown-user-info">
                       <div className="dropdown-user-name">{user.displayName || user.email?.split('@')[0] || 'Usuario'}</div>
                       <div className="dropdown-user-email">{user.email}</div>
@@ -197,6 +179,8 @@ const Header = () => {
                     <button 
                       className="dropdown-item logout-item"
                       onClick={handleLogout}
+                        const { handleSearch: performSearch } = useSearch();
+                        const { handleSearch } = useSearch();
                     >
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                         <path 
@@ -210,14 +194,12 @@ const Header = () => {
                       Cerrar Sesión
                     </button>
                   </div>
-                </div>
+                        const handleSearch = async (e) => {
               )}
-            </div>
-          ) : (
-            <div className="auth-buttons">
-              <a href="/login" className="btn-login">Iniciar Sesión</a>
-              <a href="/register" className="btn-register-header">Registrarse</a>
-            </div>
+                        const onSubmitSearch = (e) => {
+                            await performSearch(searchTerm.trim());
+                            setSearchTerm('');
+                            setSearchTerm('');
           )}
         </div>
       </div>

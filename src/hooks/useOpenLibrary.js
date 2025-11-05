@@ -1,15 +1,133 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+
+// Cache compartido entre todas las instancias del hook
+const searchCache = new Map();
+const subjectCache = new Map();
+const CACHE_TIME = 5 * 60 * 1000; // 5 minutos
 
 const useOpenLibrary = () => {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Función para buscar libros por tema con filtros mejorados
-  const searchBooksBySubject = async (subject, limit = 20) => {
+  // Función para limpiar entradas viejas del caché
+  const cleanCache = useCallback(() => {
+    const now = Date.now();
+    for (const [key, value] of searchCache.entries()) {
+      if (now - value.timestamp > CACHE_TIME) {
+        searchCache.delete(key);
+      }
+    }
+    for (const [key, value] of subjectCache.entries()) {
+      if (now - value.timestamp > CACHE_TIME) {
+        subjectCache.delete(key);
+      }
+    }
+  }, []);
+  // Función para buscar libros
+  const searchBooks = useCallback(async (query) => {
+    if (!query?.trim()) {
+      setBooks([]);
+      setLoading(false);
+      return [];
+    }
+
+    setLoading(true);
+    setError(null);
+
+    const cacheKey = query.toLowerCase().trim();
+    
+    // Verificar caché
+    if (searchCache.has(cacheKey)) {
+      const cached = searchCache.get(cacheKey);
+      if (Date.now() - cached.timestamp < CACHE_TIME) {
+        setBooks(cached.books);
+        setLoading(false);
+        return cached.books;
+      } else {
+        searchCache.delete(cacheKey);
+      }
+    }
+
     try {
       const response = await fetch(
-        `https://openlibrary.org/subjects/${subject}.json?limit=${limit}&sort=rating&details=true`
+        `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=20&fields=key,title,author_name,cover_i,first_publish_year,subject,first_sentence`
+      );
+      if (!response.ok) {
+        throw new Error('Error en la búsqueda de libros');
+      }
+      const data = await response.json();
+      
+      if (!data.docs || data.docs.length === 0) {
+        setBooks([]);
+        setLoading(false);
+        return [];
+      }
+      
+      const formattedBooks = data.docs
+        .map((book, index) => ({
+          id: book.key || `search-${index}`,
+          titulo: book.title || 'Título no disponible',
+          autor: book.author_name && book.author_name.length > 0 
+            ? book.author_name.join(', ')
+            : 'Autor desconocido',
+          genero: book.subject && book.subject.length > 0 
+            ? book.subject[0] 
+            : 'General',
+          imagen: book.cover_i 
+            ? `https://covers.openlibrary.org/b/id/${book.cover_i}-M.jpg`
+            : `https://via.placeholder.com/200x300/f8f9fa/6c757d?text=Sin+Portada`,
+          disponible: true,
+          descripcion: book.first_sentence 
+            ? Array.isArray(book.first_sentence) 
+              ? book.first_sentence[0]
+              : book.first_sentence
+            : 'Descripción no disponible',
+          fechaPublicacion: book.first_publish_year || 'Fecha desconocida',
+          rating: (Math.random() * 2 + 3).toFixed(1) // Rating entre 3 y 5
+        }))
+        .slice(0, 20); // Limitar a 20 resultados
+      
+      // Guardar en caché
+      searchCache.set(cacheKey, {
+        books: formattedBooks,
+        timestamp: Date.now()
+      });
+      
+      setBooks(formattedBooks);
+      
+      // Limpiar entradas viejas del caché
+      cleanCache();
+    } catch (err) {
+      console.error('Error buscando libros:', err);
+      setError(err.message);
+      setBooks([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [cleanCache]);
+
+  // Función para buscar libros por tema con filtros mejorados
+  const searchBooksBySubject = async (subject, limit = 20) => {
+    if (!subject?.trim()) {
+      return [];
+    }
+
+    const cacheKey = `${subject.toLowerCase().trim()}:${limit}`;
+    
+    // Verificar caché
+    if (subjectCache.has(cacheKey)) {
+      const cached = subjectCache.get(cacheKey);
+      if (Date.now() - cached.timestamp < CACHE_TIME) {
+        return cached.books;
+      } else {
+        subjectCache.delete(cacheKey);
+      }
+    }
+
+    try {
+      const response = await fetch(
+        `https://openlibrary.org/subjects/${encodeURIComponent(subject)}.json?limit=${limit}&sort=rating&details=true`
       );
       
       if (!response.ok) {
@@ -17,20 +135,25 @@ const useOpenLibrary = () => {
       }
       
       const data = await response.json();
+
+      const works = data.works || [];
+
+      // Filtrar y convertir a nuestro formato usando formatBookData
+      const formatted = works
+        .filter(work => work && work.title && work.authors && work.authors.length > 0)
+        .slice(0, limit)
+        .map((work, idx) => formatBookData(work, `${subject}-${idx}`));
+
+      // Guardar en caché
+      subjectCache.set(cacheKey, {
+        books: formatted,
+        timestamp: Date.now()
+      });
       
-      // Filtrar y seleccionar los mejores libros
-      return data.works
-        .filter(work => {
-          // Solo libros con información completa y de calidad
-          return work.title && 
-                 work.authors && 
-                 work.authors.length > 0 &&
-                 work.title.length > 2 &&
-                 work.title.length < 100 && // Títulos razonables
-                 !work.title.toLowerCase().includes('collection') && // Evitar colecciones
-                 !work.title.toLowerCase().includes('anthology'); // Evitar antologías
-        })
-        .slice(0, limit);
+      // Limpiar entradas viejas del caché
+      cleanCache();
+      
+      return formatted;
     } catch (error) {
       console.error(`Error fetching ${subject} books:`, error);
       return [];
@@ -52,10 +175,23 @@ const useOpenLibrary = () => {
 
   // Función para formatear los datos de Open Library a nuestro formato
   const formatBookData = (work, index) => {
-    const coverKey = work.cover_id || work.cover_edition_key;
-    const coverUrl = coverKey 
-      ? `https://covers.openlibrary.org/b/id/${coverKey}-M.jpg`
-      : 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzMzMzMzMyIvPjx0ZXh0IHg9IjEwMCIgeT0iMTUwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5TaW4gUG9ydGFkYTwvdGV4dD48L3N2Zz4=';
+    // Determinar la mejor portada disponible
+    const coverId = work.cover_i || work.cover_id;
+    const editionKey = work.cover_edition_key || (work.edition_key && work.edition_key[0]);
+    const isbnKey = work.isbn && work.isbn[0];
+
+    let coverUrl = '';
+    if (coverId) {
+      // cover_i / cover_id (numérico)
+      coverUrl = `https://covers.openlibrary.org/b/id/${coverId}-M.jpg`;
+    } else if (editionKey) {
+      // edition key (OL...M) -> use olid path
+      coverUrl = `https://covers.openlibrary.org/b/olid/${editionKey}-M.jpg`;
+    } else if (isbnKey) {
+      coverUrl = `https://covers.openlibrary.org/b/isbn/${isbnKey}-M.jpg`;
+    } else {
+      coverUrl = 'https://via.placeholder.com/200x300/f8f9fa/6c757d?text=Sin+Portada';
+    }
 
     // Determinar género mejorado
     const genero = determineGenre(work);
@@ -225,11 +361,19 @@ const useOpenLibrary = () => {
     return organized.sort(() => Math.random() - 0.5).slice(0, 18);
   };
 
-  // Función para buscar libros específicos por título o autor
-  const searchBooks = async (query, limit = 10) => {
-    setLoading(true);
-    setError(null);
+  // Función para búsqueda personalizada
+  const searchCustomBooks = async (query, limit = 10) => {
+    const cacheKey = `custom:${query}:${limit}`;
     
+    // Verificar caché
+    if (searchCache.has(cacheKey)) {
+      const cached = searchCache.get(cacheKey);
+      if (Date.now() - cached.timestamp < CACHE_TIME) {
+        return cached.books;
+      }
+      searchCache.delete(cacheKey);
+    }
+
     try {
       const response = await fetch(
         `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=${limit}&fields=key,title,author_name,cover_i,first_publish_year,subject,first_sentence`
@@ -261,40 +405,30 @@ const useOpenLibrary = () => {
         rating: Math.floor(Math.random() * 5) + 1
       }));
       
-      setBooks(formattedBooks);
+      // Guardar en caché
+      searchCache.set(cacheKey, {
+        books: formattedBooks,
+        timestamp: Date.now()
+      });
+
+      // Limpiar caché viejo
+      cleanCache();
+      
+      return formattedBooks;
     } catch (error) {
       console.error('Error searching books:', error);
       setError('Error al buscar libros');
+      return [];
     } finally {
       setLoading(false);
     }
   };
 
   // Libros de fallback en caso de error con la API
-  const getFallbackBooks = () => [
-    {
-      id: 'fallback-1',
-      titulo: 'Cien Años de Soledad',
-      autor: 'Gabriel García Márquez',
-      genero: 'Ficción',
-      imagen: 'https://via.placeholder.com/200x300/d4a574/ffffff?text=Cien+A%C3%B1os+de+Soledad',
-      disponible: true,
-      descripcion: 'Una obra maestra del realismo mágico.',
-      fechaPublicacion: '1967',
-      rating: 5
-    },
-    {
-      id: 'fallback-2',
-      titulo: 'Don Quijote de la Mancha',
-      autor: 'Miguel de Cervantes',
-      genero: 'Clásicos',
-      imagen: 'https://via.placeholder.com/200x300/2c3e50/ffffff?text=Don+Quijote',
-      disponible: true,
-      descripcion: 'La obra cumbre de la literatura española.',
-      fechaPublicacion: '1605',
-      rating: 5
-    }
-  ];
+  const getFallbackBooks = () => {
+    // No fallback books by default - prefer empty array so Home shows only API results
+    return [];
+  };
 
   useEffect(() => {
     loadDiverseBooks();
@@ -305,8 +439,10 @@ const useOpenLibrary = () => {
     loading,
     error,
     searchBooks,
+    searchCustomBooks,
     loadDiverseBooks,
-    searchBooksBySubject
+    searchBooksBySubject,
+    getFallbackBooks
   };
 };
 
