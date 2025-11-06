@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import BookCard from './BookCard';
+import BookCardSimple from './BookCardSimple';
 
 const BookCarousel = ({ books }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -54,7 +54,7 @@ const BookCarousel = ({ books }) => {
         
         <div className="carousel-container">
           {currentBooks.map((book) => (
-            <BookCard key={book.id} book={book} />
+            <BookCardSimple key={book.id} book={book} />
           ))}
         </div>
         

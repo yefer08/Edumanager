@@ -82,8 +82,8 @@
   align-items: center;
   gap: 12px;
   padding: 16px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: white;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .dropdown-avatar {
@@ -91,7 +91,7 @@
   height: 48px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
 }
 
 .dropdown-user-info {
@@ -106,11 +106,12 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: #2c3e50;
 }
 
 .dropdown-user-email {
   font-size: 13px;
-  opacity: 0.9;
+  color: #7f8c8d;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

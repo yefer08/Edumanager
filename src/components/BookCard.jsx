@@ -113,16 +113,6 @@ const BookCard = memo(({ book, libro }) => {
             <div className="spinner"></div>
           </div>
         )}
-        
-          {/* Badge de género */}
-          {bookData.genero && (
-            <div 
-              className="genre-badge"
-              style={{ backgroundColor: getGenreColor(bookData.genero) }}
-            >
-              {bookData.genero}
-            </div>
-          )}
       </div>      <div className="book-info">
         <h4 className="book-title" title={bookData.titulo}>
           {bookData.titulo.length > 45 ? `${bookData.titulo.substring(0, 45)}...` : bookData.titulo}

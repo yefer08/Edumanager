@@ -3,7 +3,39 @@ import { useState, useEffect, useCallback } from 'react';
 // Cache compartido entre todas las instancias del hook
 const searchCache = new Map();
 const subjectCache = new Map();
-const CACHE_TIME = 5 * 60 * 1000; // 5 minutos
+const CACHE_TIME = 5 * 60 * 1000; // 5 minutos en memoria
+const LOCALSTORAGE_CACHE_TIME = 60 * 60 * 1000; // 1 hora en localStorage
+
+// Funciones de caché en localStorage
+const getFromLocalStorage = (key) => {
+  try {
+    const item = localStorage.getItem(`openlibrary_${key}`);
+    if (!item) return null;
+    
+    const { data, timestamp } = JSON.parse(item);
+    if (Date.now() - timestamp < LOCALSTORAGE_CACHE_TIME) {
+      return data;
+    } else {
+      localStorage.removeItem(`openlibrary_${key}`);
+      return null;
+    }
+  } catch (error) {
+    console.error('Error reading from localStorage:', error);
+    return null;
+  }
+};
+
+const saveToLocalStorage = (key, data) => {
+  try {
+    const item = {
+      data,
+      timestamp: Date.now()
+    };
+    localStorage.setItem(`openlibrary_${key}`, JSON.stringify(item));
+  } catch (error) {
+    console.error('Error saving to localStorage:', error);
+  }
+};
 
 const useOpenLibrary = () => {
   const [books, setBooks] = useState([]);
@@ -37,7 +69,7 @@ const useOpenLibrary = () => {
 
     const cacheKey = query.toLowerCase().trim();
     
-    // Verificar caché
+    // 1. Verificar caché en memoria (más rápido)
     if (searchCache.has(cacheKey)) {
       const cached = searchCache.get(cacheKey);
       if (Date.now() - cached.timestamp < CACHE_TIME) {
@@ -47,6 +79,19 @@ const useOpenLibrary = () => {
       } else {
         searchCache.delete(cacheKey);
       }
+    }
+
+    // 2. Verificar caché en localStorage (rápido)
+    const cachedData = getFromLocalStorage(`search_${cacheKey}`);
+    if (cachedData) {
+      setBooks(cachedData);
+      setLoading(false);
+      // También guardar en memoria para próximas búsquedas
+      searchCache.set(cacheKey, {
+        books: cachedData,
+        timestamp: Date.now()
+      });
+      return cachedData;
     }
 
     try {
@@ -88,20 +133,26 @@ const useOpenLibrary = () => {
         }))
         .slice(0, 20); // Limitar a 20 resultados
       
-      // Guardar en caché
+      // Guardar en caché de memoria
       searchCache.set(cacheKey, {
         books: formattedBooks,
         timestamp: Date.now()
       });
       
+      // Guardar en localStorage para persistencia
+      saveToLocalStorage(`search_${cacheKey}`, formattedBooks);
+      
       setBooks(formattedBooks);
       
       // Limpiar entradas viejas del caché
       cleanCache();
+      
+      return formattedBooks;
     } catch (err) {
       console.error('Error buscando libros:', err);
       setError(err.message);
       setBooks([]);
+      return [];
     } finally {
       setLoading(false);
     }
@@ -115,7 +166,7 @@ const useOpenLibrary = () => {
 
     const cacheKey = `${subject.toLowerCase().trim()}:${limit}`;
     
-    // Verificar caché
+    // 1. Verificar caché en memoria
     if (subjectCache.has(cacheKey)) {
       const cached = subjectCache.get(cacheKey);
       if (Date.now() - cached.timestamp < CACHE_TIME) {
@@ -123,6 +174,17 @@ const useOpenLibrary = () => {
       } else {
         subjectCache.delete(cacheKey);
       }
+    }
+
+    // 2. Verificar caché en localStorage
+    const cachedData = getFromLocalStorage(`subject_${cacheKey}`);
+    if (cachedData) {
+      // Guardar en memoria para próximas búsquedas
+      subjectCache.set(cacheKey, {
+        books: cachedData,
+        timestamp: Date.now()
+      });
+      return cachedData;
     }
 
     try {
@@ -144,11 +206,14 @@ const useOpenLibrary = () => {
         .slice(0, limit)
         .map((work, idx) => formatBookData(work, `${subject}-${idx}`));
 
-      // Guardar en caché
+      // Guardar en caché de memoria
       subjectCache.set(cacheKey, {
         books: formatted,
         timestamp: Date.now()
       });
+
+      // Guardar en caché de localStorage
+      saveToLocalStorage(`subject_${cacheKey}`, formatted);
       
       // Limpiar entradas viejas del caché
       cleanCache();

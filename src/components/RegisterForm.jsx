@@ -1,7 +1,8 @@
 import React, { useState, useContext } from "react";
 import { useNavigate } from 'react-router-dom';
-import { auth } from "../config/firebaseConfig";
+import { auth, db } from "../config/firebaseConfig";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
 import { AuthContext } from '../context/AuthContext';
 import { PreferencesContext } from '../context/PreferencesContext';
 import useOpenLibrary from '../hooks/useOpenLibrary';
@@ -82,6 +83,31 @@ export default function RegisterForm() {
     
     if (!formData.birthDate) {
       newErrors.birthDate = 'La fecha de nacimiento es requerida';
+    } else {
+      const birthDate = new Date(formData.birthDate);
+      const today = new Date();
+      const age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      const dayDiff = today.getDate() - birthDate.getDate();
+      
+      // Calcular edad exacta
+      let actualAge = age;
+      if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+        actualAge--;
+      }
+      
+      // Validar que la fecha no sea futura
+      if (birthDate > today) {
+        newErrors.birthDate = 'La fecha de nacimiento no puede ser futura';
+      }
+      // Validar edad mínima (10 años)
+      else if (actualAge < 10) {
+        newErrors.birthDate = 'Debes tener al menos 10 años para registrarte';
+      }
+      // Validar edad máxima razonable (120 años)
+      else if (actualAge > 120) {
+        newErrors.birthDate = 'Por favor ingresa una fecha de nacimiento válida';
+      }
     }
     
     if (!formData.gender) {
@@ -135,80 +161,30 @@ export default function RegisterForm() {
       const displayName = `${formData.firstName} ${formData.secondName || ''} ${formData.lastName} ${formData.secondLastName || ''}`.trim();
       await updateProfile(user, { displayName });
       
-      // Guardar preferencias literarias del usuario
-      const userPreferences = {
-        generoFavorito: formData.favoriteGenre,
-        generosFavoritos: [formData.favoriteGenre],
-        autoresFavoritos: [],
-        librosFavoritos: []
-      };
-      
-      console.log('Guardando preferencias del usuario:', userPreferences);
-      
-      const result = await updatePreferences(userPreferences);
-      if (result.success) {
-        console.log('Preferencias guardadas exitosamente');
-
-        // Intentar añadir automáticamente algunos libros de ejemplo a favoritos
-        try {
-          const slugMap = {
-            'Ficción': 'fiction',
-            'No Ficción': 'nonfiction',
-            'Misterio': 'mystery',
-            'Romance': 'romance',
-            'Ciencia Ficción': 'science_fiction',
-            'Fantasía': 'fantasy',
-            'Biografía': 'biography',
-            'Historia': 'history',
-            'Autoayuda': 'self_help',
-            'Poesía': 'poetry',
-            'Aventura': 'adventure',
-            'Terror': 'horror',
-            'Thriller': 'thriller',
-            'Drama': 'drama',
-            'Infantil': 'children',
-            'Juvenil': 'young_adult',
-            'Ciencia': 'science',
-            'Filosofía': 'philosophy'
-          };
-
-          const slug = slugMap[formData.favoriteGenre] || formData.favoriteGenre.toLowerCase().replace(/\s+/g, '_');
-          let fetched = [];
-          try {
-            fetched = await searchBooksBySubject(slug, 8);
-          } catch (err) {
-            console.warn('searchBooksBySubject falló, intentando searchBooks', err);
-            fetched = await searchBooks(formData.favoriteGenre, 8);
+      // Guardar preferencias directamente en Firestore usando el UID del usuario
+      try {
+        const userDocRef = doc(db, 'usuarios', user.uid);
+        await setDoc(userDocRef, {
+          nombre: displayName,
+          correo: formData.email,
+          fecha_registro: new Date(),
+          preferencias: {
+            generos: [formData.favoriteGenre],
+            autores: [],
+            libros: []
           }
-
-          if (fetched && fetched.length > 0) {
-            const toAdd = fetched.slice(0, 6);
-            toAdd.forEach(b => {
-              try {
-                addFavoriteBook({ id: b.id, titulo: b.titulo, autor: b.autor, imagen: b.imagen, genero: b.genero });
-              } catch (err) {
-                console.warn('Error añadiendo favorito:', err);
-              }
-            });
-          }
-        } catch (err) {
-          console.warn('No se pudieron añadir libros automáticamente a favoritos:', err);
-        }
-
-      } else {
-        console.warn('No se pudieron guardar las preferencias:', result.error);
+        });
+        console.log('Preferencias guardadas exitosamente en Firebase');
+      } catch (error) {
+        console.error('Error guardando preferencias:', error);
       }
       
       console.log("Usuario registrado exitosamente:", {
         uid: user.uid,
         email: user.email,
         displayName: displayName,
-        additionalData: formData,
-        preferences: userPreferences
+        genero: formData.favoriteGenre
       });
-      
-      // Actualizar contexto de autenticación
-      await login(user);
       
       // Navegar a la página principal
       navigate('/');
@@ -466,7 +442,7 @@ export default function RegisterForm() {
               <option value="9no">9no Grado</option>
               <option value="10mo">10mo Grado</option>
               <option value="11mo">11mo Grado</option>
-              <option value="universidad">Universidad</option>
+              <option value="pregrado">Pregado</option>
               <option value="postgrado">Postgrado</option>
             </select>
             {errors.grade && <span className="error-text">{errors.grade}</span>}

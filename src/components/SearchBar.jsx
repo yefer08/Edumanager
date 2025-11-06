@@ -31,7 +31,7 @@ const SearchBar = () => {
         </svg>
         <input
           type="text"
-          placeholder="Buscar libros, autores, géneros..."
+          placeholder="Buscar libros..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="search-input"

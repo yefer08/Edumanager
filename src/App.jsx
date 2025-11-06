@@ -2,6 +2,7 @@ import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { PreferencesProvider } from './context/PreferencesContext';
+import Footer from './components/Footer';
 import './App.css';
 
 // Lazy loading de componentes
@@ -29,6 +30,7 @@ function App() {
                 <Route path="*" element={<Navigate to="/" />} />
               </Routes>
             </Suspense>
+            <Footer />
           </div>
         </Router>
       </PreferencesProvider>

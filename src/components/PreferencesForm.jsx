@@ -7,8 +7,21 @@ const PreferencesForm = ({ onSave }) => {
   });
 
   const generos = [
-    'Ficción', 'No Ficción', 'Misterio', 'Romance', 'Ciencia Ficción',
-    'Fantasía', 'Biografía', 'Historia', 'Autoayuda', 'Poesía'
+    'Ficción',
+    'No Ficción',
+    'Misterio',
+    'Romance',
+    'Ciencia Ficción',
+    'Fantasía',
+    'Biografía',
+    'Historia',
+    'Autoayuda',
+    'Poesía',
+    'Aventura',
+    'Terror',
+    'Drama',
+    'Infantil',
+    'Juvenil'
   ];
 
   const handleGenreChange = (genero) => {
@@ -47,7 +60,7 @@ const PreferencesForm = ({ onSave }) => {
 
       {/* Notificaciones y privacidad removidos por decisión de producto */}
 
-      <button type="submit" className="btn-primary">
+      <button type="submit" className="btn-save-preferences">
         Guardar Preferencias
       </button>
     </form>

@@ -1,7 +1,7 @@
 import React from 'react';
 import Navigation from '../components/Navigation';
 import Header from '../components/Header';
-import BookCard from '../components/BookCard';
+import BookCardSimple from '../components/BookCardSimple';
 import { useContext } from 'react';
 import { PreferencesContext } from '../context/PreferencesContext';
 
@@ -12,7 +12,7 @@ const TareasPage = () => {
   return (
     <div className="tareas-page">
       <Navigation />
-      <Header />
+      <Header hideSearch={true} />
       <main className="main-content">
         <div className="page-header">
           <h1>Favoritos</h1>
@@ -26,7 +26,7 @@ const TareasPage = () => {
         ) : (
           <div className="favorites-grid">
             {favoritos.map((book, idx) => (
-              <BookCard key={book.id || idx} book={book} />
+              <BookCardSimple key={book.id || idx} book={book} />
             ))}
           </div>
         )}

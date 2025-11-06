@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Navigation from '../components/Navigation';
 import Header from '../components/Header';
-import BookCard from '../components/BookCard';
+import BookCardSimple from '../components/BookCardSimple';
+import SkeletonCard from '../components/SkeletonCard';
 import useOpenLibrary from '../hooks/useOpenLibrary';
 import useSearch from '../hooks/useSearch';
 const BibliotecaPage = () => {
@@ -23,12 +24,18 @@ const BibliotecaPage = () => {
       const urlParams = new URLSearchParams(window.location.search);
       const searchQuery = urlParams.get('search');
 
-      if (searchQuery) {
-        setFilteredBooks(searchResults || []);
+      console.log('BibliotecaPage - Search Query:', searchQuery);
+      console.log('BibliotecaPage - Search Results:', searchResults);
+      console.log('BibliotecaPage - Selected Genre:', selectedGenre);
+
+      if (searchQuery && searchResults && searchResults.length >= 0) {
+        console.log('Mostrando resultados de búsqueda:', searchResults.length);
+        setFilteredBooks(searchResults);
         return;
       }
 
       if (selectedGenre) {
+        console.log('Buscando por género:', selectedGenre);
         const genreBooks = await searchBooksBySubject(selectedGenre.toLowerCase(), 20);
         const booksWithGenre = Array.isArray(genreBooks)
           ? genreBooks.map(b => ({ ...b, genero: selectedGenre }))
@@ -38,12 +45,13 @@ const BibliotecaPage = () => {
       }
 
       // carga por defecto
+      console.log('Cargando libros por defecto');
       const defaultBooks = await searchBooksBySubject('fiction', 20);
       setFilteredBooks(defaultBooks || []);
     };
 
     load();
-  }, [searchResults, selectedGenre, searchBooksBySubject]);
+  }, [searchResults, selectedGenre]);
 
   const handleGenreChange = (genre) => {
     setSelectedGenre(genre);
@@ -68,12 +76,13 @@ const BibliotecaPage = () => {
       <Header />
       <main className="main-content">
         <header className="page-header">
-          <h1>Biblioteca Digital - Open Library</h1>
-          <p>Explora millones de libros reales de la biblioteca mundial</p>
+          <h1>Biblioteca Digital BiblioEdu</h1>
+          <p>Explora millones de libros reales de la biblioteca BiblioEdu</p>
         </header>
-        <div className="loading">
-          <div className="spinner"></div>
-          <p>Cargando biblioteca...</p>
+        <div className="books-grid">
+          {Array.from({ length: 12 }).map((_, i) => (
+            <SkeletonCard key={i} />
+          ))}
         </div>
       </main>
     </div>
@@ -85,8 +94,8 @@ const BibliotecaPage = () => {
       <Header />
       <main className="main-content">
         <header className="page-header">
-          <h1>Biblioteca Digital - Open Library</h1>
-          <p>Explora millones de libros reales de la biblioteca mundial</p>
+          <h1>Biblioteca Digital BiblioEdu</h1>
+          <p>Explora millones de libros reales de la biblioteca BiblioEdu</p>
         </header>
         <div className="error">
           <p>Error: {error || searchError}</p>
@@ -104,8 +113,8 @@ const BibliotecaPage = () => {
       <Header />
       <main className="main-content">
         <header className="page-header">
-          <h1>Biblioteca Digital - Open Library</h1>
-          <p>Explora millones de libros reales de la biblioteca mundial</p>
+          <h1>Biblioteca Digital BiblioEdu</h1>
+          <p>Explora millones de libros reales de la biblioteca BiblioEdu</p>
         </header>
 
         <div className="filters-section">
@@ -141,7 +150,7 @@ const BibliotecaPage = () => {
         {filteredBooks.length > 0 ? (
           <div className="books-grid">
             {filteredBooks.map((book, index) => (
-              <BookCard key={book.id || index} book={book} />
+              <BookCardSimple key={book.id || index} book={book} />
             ))}
           </div>
         ) : (
@@ -153,13 +162,6 @@ const BibliotecaPage = () => {
             </button>
           </div>
         )}
-
-        <div className="open-library-credit">
-          <p>
-            <strong>Powered by Open Library</strong> - 
-            Acceso a más de 20 millones de libros catalogados
-          </p>
-        </div>
       </main>
     </div>
   );
