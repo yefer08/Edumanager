@@ -7,7 +7,6 @@ export default defineConfig({
   plugins: [
     react(),
     nodePolyfills({
-      // Enable polyfills for specific globals and modules
       globals: {
         Buffer: true,
         global: true,
@@ -15,17 +14,15 @@ export default defineConfig({
       },
     })
   ],
-  resolve: {
-    alias: {
-      // No aliases needed, let Vite handle it naturally
-    }
-  },
   build: {
     target: 'esnext',
+    commonjsOptions: {
+      include: [/node_modules/],
+      transformMixedEsModules: true,
+    },
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          // Separate Firebase into its own chunk
           if (id.includes('firebase') || id.includes('@firebase')) {
             return 'firebase'
           }
@@ -34,11 +31,7 @@ export default defineConfig({
     }
   },
   optimizeDeps: {
-    include: [
-      'firebase/app', 
-      'firebase/auth', 
-      'firebase/firestore'
-    ],
+    exclude: ['@firebase/firestore', '@firebase/app', '@firebase/auth'],
     esbuildOptions: {
       target: 'esnext',
       define: {
