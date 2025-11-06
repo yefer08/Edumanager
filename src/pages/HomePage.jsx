@@ -110,7 +110,7 @@ const HomePage = () => {
         ) : (
           <section className="welcome-section">
             <div className="welcome-content">
-              <h1>Bienvenido a BiblioEdu</h1>
+              <h1>Bienvenido a Edumanager</h1>
               <p>Descubre, organiza y gestiona tu biblioteca personal</p>
               <div className="welcome-actions">
                 <a href="/login" className="btn-welcome-login">Iniciar Sesión</a>

@@ -224,7 +224,7 @@ export default function RegisterForm() {
       <div className="register-form">
         <div className="form-header">
           <h2>Crear Cuenta</h2>
-          <p className="subtitle">Únete a BiblioEdu</p>
+          <p className="subtitle">Únete a Edumanager</p>
         </div>
         
         <form onSubmit={handleSignUp} className="auth-form">

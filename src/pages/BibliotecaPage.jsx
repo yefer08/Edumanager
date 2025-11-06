@@ -76,8 +76,8 @@ const BibliotecaPage = () => {
       <Header />
       <main className="main-content">
         <header className="page-header">
-          <h1>Biblioteca Digital BiblioEdu</h1>
-          <p>Explora millones de libros reales de la biblioteca BiblioEdu</p>
+          <h1>Biblioteca Digital Edumanager</h1>
+          <p>Explora millones de libros reales de la biblioteca Edumanager</p>
         </header>
         <div className="books-grid">
           {Array.from({ length: 12 }).map((_, i) => (
@@ -94,8 +94,8 @@ const BibliotecaPage = () => {
       <Header />
       <main className="main-content">
         <header className="page-header">
-          <h1>Biblioteca Digital BiblioEdu</h1>
-          <p>Explora millones de libros reales de la biblioteca BiblioEdu</p>
+          <h1>Biblioteca Digital Edumanager</h1>
+          <p>Explora millones de libros reales de la biblioteca Edumanager</p>
         </header>
         <div className="error">
           <p>Error: {error || searchError}</p>
@@ -113,8 +113,8 @@ const BibliotecaPage = () => {
       <Header />
       <main className="main-content">
         <header className="page-header">
-          <h1>Biblioteca Digital BiblioEdu</h1>
-          <p>Explora millones de libros reales de la biblioteca BiblioEdu</p>
+          <h1>Biblioteca Digital Edumanager</h1>
+          <p>Explora millones de libros reales de la biblioteca Edumanager</p>
         </header>
 
         <div className="filters-section">
